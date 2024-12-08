@@ -1,0 +1,4 @@
+[submodule "vendor/metamod-source"]
+	path = vendor/mmsource-1.10
+	url = https://github.com/alliedmodders/metamod-source.git
+	branch = 1.10-dev

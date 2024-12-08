@@ -1,0 +1,13 @@
+.vs/*
+vendor/
+build/
+*/.vs
+.ambuild2
+*.log
+*.obj
+obj-linux-x86_64/
+obj-windows-AMD64/
+msvc12/Debug/
+Release.*/
+vcpkg_installed/
+sdk/
