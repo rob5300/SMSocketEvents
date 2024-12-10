@@ -44,8 +44,15 @@ void SocketExtension::Print(string toPrint)
     std::cout << std::format("[{}] {}.\n", SMEXT_CONF_NAME, toPrint) << std::endl;
 }
 
+void OnGameFrame(bool simulated)
+{
+
+}
+
 bool SocketExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
 {
+    smutils->AddGameFrameHook(OnGameFrame);
+
     server = new TCPServer(PORT);
     server->Start();
     Print(std::format("Started TCP server on {}", PORT));
@@ -55,6 +62,8 @@ bool SocketExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
 
 void SocketExtension::SDK_OnUnload()
 {
+    smutils->RemoveGameFrameHook(OnGameFrame);
+
     if (server != nullptr)
     {
         server->Stop();

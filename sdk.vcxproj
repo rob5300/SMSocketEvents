@@ -479,7 +479,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\sourcemod;..\sourcemod\public;..\hl2sdk-tf2\public\;..\hl2sdk-tf2\public\tier1;..\mmsource-1.10\core;..\sourcemod\sourcepawn\third_party\amtl\amtl;..\mmsource-1.10\core\sourcehook;..\sourcemod\sourcepawn\include;..\hl2sdk-tf2\public\tier0;..\sourcemod\sourcepawn\third_party\amtl\;..\sourcemod\sourcepawn;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\sourcemod;..\sourcemod\public;..\hl2sdk-tf2\public\;..\hl2sdk-tf2\public\tier1;..\mmsource-1.10\core;..\sourcemod\sourcepawn\third_party\amtl\amtl;..\mmsource-1.10\core\sourcehook;..\sourcemod\sourcepawn\include;..\hl2sdk-tf2\public\tier0;..\sourcemod\sourcepawn\third_party\amtl\;..\sourcemod\sourcepawn;ext\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SDK_EXPORTS;_CRT_SECURE_NO_DEPRECATE;SOURCEMOD_BUILD;KE_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
