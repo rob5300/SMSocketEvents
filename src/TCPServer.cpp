@@ -5,9 +5,10 @@
 
 using json = nlohmann::json;
 using boost::asio::ip::tcp;
+using namespace boost;
 
-//Max buffer size of 100MB;
-constexpr long MAX_BUFFER_SIZE = 1024l * 1024l * 100l;
+//Max buffer size of 10MB;
+constexpr long MAX_BUFFER_SIZE = 1024l * 1024l * 10l;
 
 TCPServer::TCPServer(int32_t port)
 {
@@ -34,7 +35,7 @@ void TCPServer::ServerLoop()
 {
 	try
     {
-        boost::asio::io_context io_context;
+        asio::io_context io_context;
         tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), port));
 
         while (running)
@@ -42,30 +43,30 @@ void TCPServer::ServerLoop()
             tcp::socket socket(io_context);
             acceptor.accept(socket);
 
-            long dataLen = -1;
-            boost::asio::mutable_buffer dataLenBuffer(&dataLen, sizeof(long));
-            boost::asio::read(socket, dataLenBuffer);
-            if (dataLen > MAX_BUFFER_SIZE)
+            socket.wait(tcp::socket::wait_read);
+
+            EventMessageHeader header;
+            const size_t headerReadLen = boost::asio::read(socket, asio::buffer(&header, sizeof(EventMessageHeader)));
+            
+            if (std::strncmp(header.magicString, EVENT_MAGIC_STRING, 8) == 0)
             {
-                //Proposed size is too large
-                continue;
+                socket.wait(tcp::socket::wait_read);
+
+                char* read_string = new char[header.dataLength + 1];
+                read_string[header.dataLength] = 0;
+                const size_t readLen = boost::asio::read(socket, boost::asio::buffer(read_string, header.dataLength));
+                auto json = json::parse(read_string);
+                std::string stringValue = json["string"];
+                std::cout << "Message: " << stringValue << std::endl;
+                delete[] read_string;
             }
 
-            char* read_string = new char[dataLen + sizeof(long) + 1];
-            read_string[dataLen + sizeof(long)] = 0;
-            char* offset_string = read_string + sizeof(long);
-            boost::asio::read(socket, boost::asio::buffer(read_string, dataLen + sizeof(long)));
-
-            auto json = json::parse(offset_string);
-            std::string stringValue = json["string"];
-
-            delete(read_string);
             //std::string message = "Test123abc!";
             //boost::system::error_code ignored_error;
             //boost::asio::write(socket, boost::asio::buffer(message), ignored_error);
 	    }
     }
-    catch (std::exception& const e)
+    catch (std::exception& e)
     {
         std::cout << e.what() << std::endl;
     }

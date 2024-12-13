@@ -11,3 +11,5 @@ msvc12/Debug/
 Release.*/
 vcpkg_installed/
 sdk/
+tier0_i486.so
+vstdlib_i486.so

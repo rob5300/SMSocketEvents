@@ -8,12 +8,12 @@
 #include <string>
 #include <filesystem>
 #include <IPluginSys.h>
-#include "extension.h"
-#include "tier1/iconvar.h"
-#include "convar.h"
-#include "icvar.h"
 #include <ctime>
 #include <iostream>
+#include <sstream>
+#include <map>
+#include "KeyValues.h"
+#include "extension.h"
 #include "TCPServer.hpp"
 
 #define PORT 25570
@@ -25,6 +25,22 @@ SocketExtension g_Sample;
 SMEXT_LINK(&g_Sample);
 
 TCPServer* server;
+map<string, IChangeableForward*> eventForwards;
+
+IChangeableForward* GetOrAddForward(char* name)
+{
+    string nameString(name);
+    if (eventForwards.find(nameString) != eventForwards.end())
+    {
+        return eventForwards[nameString];
+    }
+    else
+    {
+        IChangeableForward* newForward = forwards->CreateForwardEx(NULL, ET_Hook, 1, NULL, Param_Cell);
+        eventForwards[nameString] = newForward;
+        return newForward;
+    }
+}
 
 /** 
  * Class to allow our convars to be properly registered.
@@ -41,7 +57,9 @@ public:
 
 void SocketExtension::Print(string toPrint)
 {
-    std::cout << std::format("[{}] {}.\n", SMEXT_CONF_NAME, toPrint) << std::endl;
+    std::ostringstream oss;
+    oss << "[" << SMEXT_CONF_NAME << "] " << toPrint;
+    std::cout << oss.str() << std::endl;
 }
 
 void OnGameFrame(bool simulated)
@@ -55,13 +73,20 @@ bool SocketExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
 
     server = new TCPServer(PORT);
     server->Start();
-    Print(std::format("Started TCP server on {}", PORT));
+    Print(std::string("Started TCP server on ") + to_string(PORT));
 
     return true;
 }
 
 void SocketExtension::SDK_OnUnload()
 {
+    //Unload all forwards
+    for (auto forwardPair : eventForwards)
+    {
+        forwards->ReleaseForward(forwardPair.second);
+    }
+    eventForwards.clear();
+    
     smutils->RemoveGameFrameHook(OnGameFrame);
 
     if (server != nullptr)
@@ -71,18 +96,51 @@ void SocketExtension::SDK_OnUnload()
     }
 }
 
-const sp_nativeinfo_t NativeFunctions [] = {
+static cell_t AddEventListener(IPluginContext *pContext, const cell_t *params)
+{
+    char *str;
+	pContext->LocalToString(params[1], &str);
+    const auto forward = GetOrAddForward(str);
+	forward->AddFunction(pContext, static_cast<funcid_t>(params[2]));
+	return 1;
+}
+ 
+static cell_t RemoveEventListener(IPluginContext *pContext, const cell_t *params)
+{
+    char *str;
+	pContext->LocalToString(params[1], &str);
+    const auto forward = GetOrAddForward(str);
+	IPluginFunction *pFunction = pContext->GetFunctionById(static_cast<funcid_t>(params[2]));
+	forward->RemoveFunction(pFunction);
+	return 1;
+}
+
+static cell_t RemoveAllEventListeners(IPluginContext *pContext, const cell_t *params)
+{
+    char *str;
+	pContext->LocalToString(params[1], &str);
+    const auto forward = GetOrAddForward(str);
+	IPluginFunction *pFunction = pContext->GetFunctionById(static_cast<funcid_t>(params[2]));
+	//forward->RemoveFunctionsOfPlugin(pContext->GetIdentity());
+	return 0;
+}
+
+const sp_nativeinfo_t NativeFunctions [] =
+{
+    {"AddEventListener", AddEventListener},
+    {"RemoveEventListener", RemoveEventListener},
+    {"RemoveAllEventListeners", RemoveAllEventListeners},
     {NULL, NULL},
 };
 
 void SocketExtension::SDK_OnAllLoaded ()
 {
-    //sharesys->AddNatives (myself, NativeFunctions);
+    sharesys->AddNatives (myself, NativeFunctions);
 }
 
 bool SocketExtension::SDK_OnMetamodLoad(ISmmAPI* ismm, char* error, size_t maxlen, bool late)
 {
-    GET_V_IFACE_ANY(GetEngineFactory, g_pCVar, ICvar, CVAR_INTERFACE_VERSION);
-    ConVar_Register(0, &s_BaseAccessor);
+    //GET_V_IFACE_ANY(GetEngineFactory, g_pCVar, ICvar, CVAR_INTERFACE_VERSION);
+    //ConVar_Register(0, &s_BaseAccessor);
     return true;
 }

@@ -5,23 +5,13 @@
 ### EDIT THESE PATHS FOR YOUR OWN SETUP ###
 ###########################################
 
-# SMSDK = ../..
-# HL2SDK_ORIG = ../../../hl2sdk
-# HL2SDK_OB = ../../../hl2sdk-ob
-# HL2SDK_CSS = ../../../hl2sdk-css
-# HL2SDK_OB_VALVE = ../../../hl2sdk-ob-valve
-# HL2SDK_L4D = ../../../hl2sdk-l4d
-# HL2SDK_L4D2 = ../../../hl2sdk-l4d2
-# HL2SDK_CSGO = ../../../hl2sdk-csgo
-# MMSOURCE19 = ../../../mmsource-1.10
-
-SMSDK = ../..
-MMSOURCE19 = ../../../mmsource-1.10
-HL2SDK_ORIG = ../../../hl2sdk-tf2
-HL2SDK_TF2 = ../../../hl2sdk-tf2
-HL2SDK_OB = ../../../hl2sdk-ob
+SMSDK = ../sourcemod
+MMSOURCE19 = ../mmsource-1.10
+HL2SDK_ORIG = ../hl2sdk-tf2
+HL2SDK_TF2 = ../hl2sdk-tf2
+HL2SDK_OB = ../hl2sdk-ob
 HL2SDK_CSS = UNUSED
-HL2SDK_OB_VALVE = ../../../hl2sdk-ob-valve
+HL2SDK_OB_VALVE = ../hl2sdk-ob-valve
 HL2SDK_L4D = UNUSED
 HL2SDK_L4D2 = UNUSED
 HL2SDK_CSGO = UNUSED
@@ -31,12 +21,12 @@ ENGINE = original
 ### EDIT BELOW FOR OTHER PROJECTS ###
 #####################################
 
-PROJECT = ctferrorlogger
+PROJECT = socket_ext
 
 #Uncomment for Metamod: Source enabled extension
 USEMETA = true
 
-OBJECTS = smsdk_ext.cpp src/extension.cpp src/DebugListener.cpp src/CTFErrorLoggerConfig.cpp src/SMErrorLogReader.cpp $(HL2LIB)/mathlib_i486.a $(HL2LIB)/tier1_i486.a lib/sentry.a
+OBJECTS = $(wildcard src/*.cpp) $(wildcard *.cpp)
 
 ##############################################
 ### CONFIGURE ANY OTHER FLAGS/OPTIONS HERE ###
@@ -46,7 +36,7 @@ C_OPT_FLAGS = -DNDEBUG -O3 -funroll-loops -pipe -fno-strict-aliasing
 C_DEBUG_FLAGS = -D_DEBUG -DDEBUG -g -ggdb3
 C_GCC4_FLAGS = -fvisibility=hidden
 CPP_GCC4_FLAGS = -fvisibility-inlines-hidden
-CPP = c++
+CPP = gcc
 CPP_OSX = left4dead2
 
 ##########################
@@ -121,7 +111,7 @@ else
 	LIB_SUFFIX = .$(LIB_EXT)
 endif
 
-INCLUDE += -I. -I.. -Isdk -I$(SMSDK)/public -I$(SMSDK)/sourcepawn/include -I$(SMSDK)/sourcepawn/third_party -I$(SMSDK)/sourcepawn/third_party/amtl/amtl -I$(SMSDK)/sourcepawn/third_party/amtl -I$(HL2SDK_TF2)/public -I$(HL2SDK_TF2)/public/engine -I$(HL2SDK_TF2)/public/tier1 -I$(HL2SDK_TF2)/public/tier0 -I$(MMSOURCE19)/core -I$(MMSOURCE19)/core/sourcehook -I$(HL2SDK_TF2)/public/mathlib -I$(HL2SDK_TF2)/vstdlib -I$(HL2SDK_TF2)/public/game/server -I$(HL2SDK_TF2)/game/shared -I$(HL2SDK_TF2)/common -I$(HL2SDK_TF2)/public/toolframework
+INCLUDE += -Iext/ -Isrc/ -I$(SMSDK) -I$(SMSDK)/public -I$(SMSDK)/public -I$(SMSDK)/sourcepawn/include -I$(SMSDK)/sourcepawn/third_party -I$(SMSDK)/sourcepawn/third_party/amtl/amtl -I$(SMSDK)/sourcepawn/third_party/amtl -I$(HL2SDK_TF2)/public -I$(HL2SDK_TF2)/public/engine -I$(HL2SDK_TF2)/public/tier1 -I$(HL2SDK_TF2)/public/tier0 -I$(MMSOURCE19)/core -I$(MMSOURCE19)/core/sourcehook -I$(HL2SDK_TF2)/public/mathlib -I$(HL2SDK_TF2)/vstdlib -I$(HL2SDK_TF2)/public/game/server -I$(HL2SDK_TF2)/game/shared -I$(HL2SDK_TF2)/common -I$(HL2SDK_TF2)/public/toolframework
 
 ifeq "$(USEMETA)" "true"
 	LINK_HL2 = -L $(HL2LIB) -l tier0_srv -l vstdlib_srv
@@ -138,12 +128,12 @@ ifeq "$(USEMETA)" "true"
 		-DSE_PORTAL2=11 -DSE_CSGO=12 -DSE_TF2=11
 endif
 
-LINK += -m32 -L/usr/lib/i386-linux-gnu/ -lm -ldl -lcurl -lstdc++fs -lstdc++ -lcurl -std=c17 -static-libgcc
+LINK += -Lboost -m32 -L/usr/lib/i386-linux-gnu/ -lm -ldl -lstdc++fs -lstdc++ -static-libgcc
 
 CFLAGS += -DPOSIX -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp \
 	-D_snprintf=snprintf -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC -Wall \
 	-Wno-overloaded-virtual -Wno-switch -Wno-unused -msse -DSOURCEMOD_BUILD -DHAVE_STDINT_H -m32 -DGNUC 
-CPPFLAGS += -Wno-non-virtual-dtor -fno-rtti -std=c++17 -fpermissive -fexceptions -fvisibility-inlines-hidden -fvisibility-inlines-hidden -fvisibility-inlines-hidden -Wno-register -Wno-address-of-temporary
+CPPFLAGS += -Wno-non-virtual-dtor -fno-rtti -std=c++14 -fpermissive -fexceptions -fvisibility-inlines-hidden -fvisibility-inlines-hidden -fvisibility-inlines-hidden -Wno-register
 
 ################################################
 ### DO NOT EDIT BELOW HERE FOR MOST PROJECTS ###
@@ -217,7 +207,6 @@ $(BIN_DIR)/%.o: %.cpp
 
 all:
 	mkdir -p $(BIN_DIR)
-	ln -sf ../smsdk_ext.cpp
 	if [ "$(USEMETA)" = "true" ]; then \
 		ln -sf $(HL2LIB)/$(LIB_PREFIX)vstdlib$(LIB_SUFFIX); \
 		ln -sf $(HL2LIB)/$(LIB_PREFIX)tier0$(LIB_SUFFIX); \
