@@ -5,14 +5,9 @@
 #include <nlohmann/json.hpp>
 #include "KeyValues.h"
 #include "concurrentqueue.h"
+#include "EventMessage.h"
 
 constexpr const char* EVENT_MAGIC_STRING = "EVENTMSG";
-
-struct EventMessage
-{
-	std::string name;
-	KeyValues args;
-};
 
 struct EventMessageHeader
 {
@@ -33,5 +28,9 @@ class TCPServer
 		int32_t port;
 		std::unique_ptr<std::thread> thread;
 		void ServerLoop();
-		void EnqueueNewEventMessage(nlohmann::json& json);
+
+		/// <summary>
+		/// Parse message json and enqueue a new event message
+		/// </summary>
+		void ParseMessageAndEnqueue(nlohmann::json& json);
 };

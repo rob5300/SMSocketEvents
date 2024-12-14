@@ -1,4 +1,5 @@
 #include "TCPServer.hpp"
+#include "EventMessage.h"
 #include <boost/asio.hpp>
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -31,6 +32,35 @@ void TCPServer::Stop()
     thread->join();
 }
 
+void TCPServer::ParseMessageAndEnqueue(json& json)
+{
+    EventMessage eventMessage;
+    eventMessage.name = json["event"];
+    eventMessage.args = new KeyValues("args");
+    auto args = json["args"];
+    for (auto pair :  args.items())
+    {
+        auto key = pair.key();
+        auto value = pair.value();
+        const auto type = value.type();
+        switch (type)
+        {
+            case json::value_t::string:
+                eventMessage.args->SetString(key.c_str(), value.get<std::string>().c_str());
+                break;
+            case json::value_t::number_integer:
+                eventMessage.args->SetInt(key.c_str(), value.get<int>());
+                break;
+            case json::value_t::number_float:
+                eventMessage.args->SetFloat(key.c_str(), value.get<float>());
+                break;
+            case json::value_t::boolean:
+                eventMessage.args->SetBool(key.c_str(), value.get<bool>());
+        }
+    }
+    eventQueue.enqueue(eventMessage);
+}
+
 void TCPServer::ServerLoop()
 {
 	try
@@ -46,18 +76,39 @@ void TCPServer::ServerLoop()
             socket.wait(tcp::socket::wait_read);
 
             EventMessageHeader header;
-            const size_t headerReadLen = boost::asio::read(socket, asio::buffer(&header, sizeof(EventMessageHeader)));
+            try
+            {
+                const size_t headerReadLen = boost::asio::read(socket, asio::buffer(&header, sizeof(EventMessageHeader)));
+            }
+            catch (const std::exception& e)
+            {
+                std::cout << "Header parse exception: " << e.what() << std::endl;
+                continue;
+            }
             
             if (std::strncmp(header.magicString, EVENT_MAGIC_STRING, 8) == 0)
             {
-                socket.wait(tcp::socket::wait_read);
+                if (header.dataLength > MAX_BUFFER_SIZE)
+                {
+                    //Do not accept buffer with size larger than the max
+                    continue;
+                }
 
+                socket.wait(tcp::socket::wait_read);
+                //Make char buffer for incoming json.
+                //Make it 1 bigger to ensure it is null terminated
                 char* read_string = new char[header.dataLength + 1];
                 read_string[header.dataLength] = 0;
-                const size_t readLen = boost::asio::read(socket, boost::asio::buffer(read_string, header.dataLength));
-                auto json = json::parse(read_string);
-                std::string stringValue = json["string"];
-                std::cout << "Message: " << stringValue << std::endl;
+                try
+                {
+                    const size_t readLen = boost::asio::read(socket, boost::asio::buffer(read_string, header.dataLength));
+                    auto json = json::parse(read_string);
+                    ParseMessageAndEnqueue(json);
+                }
+                catch (const std::exception& e)
+                {
+                    std::cout << "Message parse exception: " << e.what() << std::endl;
+                }
                 delete[] read_string;
             }
 
@@ -68,6 +119,6 @@ void TCPServer::ServerLoop()
     }
     catch (std::exception& e)
     {
-        std::cout << e.what() << std::endl;
+        std::cout << "Server Exception: " << e.what() << std::endl;
     }
 }

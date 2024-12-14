@@ -1190,6 +1190,7 @@
     <ClCompile Include="src\TCPServer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\EventMessage.h" />
     <ClInclude Include="ext\concurrentqueue.h" />
     <ClInclude Include="ext\nlohmann\json.hpp" />
     <ClInclude Include="ext\nlohmann\json_fwd.hpp" />

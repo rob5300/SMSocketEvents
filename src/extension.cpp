@@ -21,8 +21,8 @@
 using namespace SourceMod;
 using namespace std;
 
-SocketExtension g_Sample;
-SMEXT_LINK(&g_Sample);
+SocketExtension g_socketExtension;
+SMEXT_LINK(&g_socketExtension);
 
 TCPServer* server;
 map<string, IChangeableForward*> eventForwards;
@@ -64,7 +64,28 @@ void SocketExtension::Print(string toPrint)
 
 void OnGameFrame(bool simulated)
 {
-
+    //TODO: Delete message and let keyvalues leak?
+    EventMessage eventMessage;
+    if (server->eventQueue.try_dequeue(eventMessage))
+    {
+        //We have a message to dispatch!
+        if (eventForwards.find(eventMessage.name) != eventForwards.end())
+        {
+            auto forward = eventForwards[eventMessage.name];
+            cell_t result = 0;
+	        forward->PushCell(reinterpret_cast<cell_t>(eventMessage.args));
+	        forward->Execute(&result);
+ 
+	        if (result == Pl_Handled)
+	        {
+		        std::cout << "Event '" << eventMessage.name << "' sent" << std::endl;
+	        }
+        }
+        else
+        {
+            std::cout << "Received Event '" << eventMessage.name << "' but there are 0 subscribers" << std::endl;
+        }
+    }
 }
 
 bool SocketExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
@@ -74,7 +95,7 @@ bool SocketExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
     server = new TCPServer(PORT);
     server->Start();
     Print(std::string("Started TCP server on ") + to_string(PORT));
-
+    
     return true;
 }
 
