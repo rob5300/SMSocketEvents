@@ -7,7 +7,7 @@ class EventArgsHandler : public SourceMod::IHandleTypeDispatch
 public:
     void OnHandleDestroy(HandleType_t type, void *object)
     {
-        EventArgs* eventArgs = reinterpret_cast<EventArgs*>(object);
+        EventArgs* eventArgs = static_cast<EventArgs*>(object);
         delete eventArgs;
     }
 };

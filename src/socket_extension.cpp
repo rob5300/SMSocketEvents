@@ -68,6 +68,12 @@ void OnGameFrame(bool simulated)
     EventMessage eventMessage;
     if (server->eventQueue.try_dequeue(eventMessage))
     {
+        if (eventMessage.args == nullptr)
+        {
+            std::cout << "Event '" << eventMessage.name << "' was missing valid arguments." << std::endl;
+            return;
+        }
+
         //We have a message to dispatch!
         if (eventForwards.find(eventMessage.name) != eventForwards.end())
         {

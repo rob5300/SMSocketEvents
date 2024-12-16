@@ -34,35 +34,17 @@ void TCPServer::Stop()
 
 void TCPServer::ParseMessageAndEnqueue(json& json)
 {
-    EventMessage eventMessage;
-    eventMessage.name = json["event"];
-    eventMessage.args = new EventArgs();
-    auto args = json["args"];
-    for (auto pair :  args.items())
+    if (json.contains("event") && json.contains("args"))
     {
-        auto key = pair.key();
-        auto value = pair.value();
-        const auto type = value.type();
-        switch (type)
-        {
-            case json::value_t::string:
-                eventMessage.args->SetString(key, &value.get<std::string>());
-                break;
-
-            case json::value_t::number_integer:
-                eventMessage.args->SetInt(key, value.get<int32>());
-                break;
-
-            case json::value_t::number_float:
-                eventMessage.args->SetFloat(key, value.get<float>());
-                break;
-
-            case json::value_t::boolean:
-                eventMessage.args->SetBool(key, value.get<bool>());
-                break;
-        }
+        EventMessage eventMessage;
+        eventMessage.name = json["event"];
+        eventMessage.args = new EventArgs(json["args"]);
+        eventQueue.enqueue(eventMessage);
     }
-    eventQueue.enqueue(eventMessage);
+    else
+    {
+        std::cout << "Received message was missing 'event' and/or 'args' from payload " << std::endl;
+    }
 }
 
 void TCPServer::ServerLoop()

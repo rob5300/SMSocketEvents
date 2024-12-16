@@ -1,4 +1,5 @@
 #include "Config.h"
+#include <cstring>
 
 unsigned int Config::GetTextParserVersion1()
 {
