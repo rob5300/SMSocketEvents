@@ -36,7 +36,7 @@ void TCPServer::ParseMessageAndEnqueue(json& json)
 {
     EventMessage eventMessage;
     eventMessage.name = json["event"];
-    eventMessage.args = new KeyValues("args");
+    eventMessage.args = new EventArgs();
     auto args = json["args"];
     for (auto pair :  args.items())
     {
@@ -46,16 +46,20 @@ void TCPServer::ParseMessageAndEnqueue(json& json)
         switch (type)
         {
             case json::value_t::string:
-                eventMessage.args->SetString(key.c_str(), value.get<std::string>().c_str());
+                eventMessage.args->SetString(key, &value.get<std::string>());
                 break;
+
             case json::value_t::number_integer:
-                eventMessage.args->SetInt(key.c_str(), value.get<int>());
+                eventMessage.args->SetInt(key, value.get<int32>());
                 break;
+
             case json::value_t::number_float:
-                eventMessage.args->SetFloat(key.c_str(), value.get<float>());
+                eventMessage.args->SetFloat(key, value.get<float>());
                 break;
+
             case json::value_t::boolean:
-                eventMessage.args->SetBool(key.c_str(), value.get<bool>());
+                eventMessage.args->SetBool(key, value.get<bool>());
+                break;
         }
     }
     eventQueue.enqueue(eventMessage);

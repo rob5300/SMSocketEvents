@@ -1,10 +1,10 @@
 #pragma once
 #include <string>
-#include "KeyValues.h"
+#include "EventArgs.h"
 
 class EventMessage
 {
 public:
 	std::string name;
-	KeyValues* args;
+	EventArgs* args;
 };

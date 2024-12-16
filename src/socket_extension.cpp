@@ -12,11 +12,11 @@
 #include <iostream>
 #include <sstream>
 #include <map>
-#include "KeyValues.h"
-#include "extension.h"
+#include "socket_extension.h"
 #include "TCPServer.hpp"
-
-#define PORT 25570
+#include "Config.h"
+#include "EventArgs.h"
+#include "EventArgs_Handle.h"
 
 using namespace SourceMod;
 using namespace std;
@@ -24,8 +24,9 @@ using namespace std;
 SocketExtension g_socketExtension;
 SMEXT_LINK(&g_socketExtension);
 
-TCPServer* server;
+TCPServer* server = 0;
 map<string, IChangeableForward*> eventForwards;
+Config config;
 
 IChangeableForward* GetOrAddForward(char* name)
 {
@@ -64,7 +65,6 @@ void SocketExtension::Print(string toPrint)
 
 void OnGameFrame(bool simulated)
 {
-    //TODO: Delete message and let keyvalues leak?
     EventMessage eventMessage;
     if (server->eventQueue.try_dequeue(eventMessage))
     {
@@ -73,13 +73,24 @@ void OnGameFrame(bool simulated)
         {
             auto forward = eventForwards[eventMessage.name];
             cell_t result = 0;
-	        forward->PushCell(reinterpret_cast<cell_t>(eventMessage.args));
-	        forward->Execute(&result);
+            
+            HandleError error = HandleError_None;
+            const auto keyValuesHandle = handlesys->CreateHandle(EventArgsHandleType, eventMessage.args, NULL, myself->GetIdentity(), &error);
+            if (error == 0)
+            {
+                forward->Cancel();
+                forward->PushCell(keyValuesHandle);
+	            forward->Execute(&result);
  
-	        if (result == Pl_Handled)
-	        {
-		        std::cout << "Event '" << eventMessage.name << "' sent" << std::endl;
-	        }
+	            if (result == Pl_Handled)
+	            {
+		            std::cout << "Event '" << eventMessage.name << "' sent" << std::endl;
+	            }
+            }
+            else
+            {
+                std::cout << "Handle creation error " << error << std::endl;
+            }
         }
         else
         {
@@ -90,11 +101,27 @@ void OnGameFrame(bool simulated)
 
 bool SocketExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
 {
+    try
+    {
+#if _WIN32
+        string configPath = string(g_SMAPI->GetBaseDir()) + "\\cfg\\sourcemod\\socketevents.ini";
+#else
+        string configPath = string(g_SMAPI->GetBaseDir()) + "/cfg/sourcemod/socketevents.ini";
+#endif
+        const bool parsedConfig = textparsers->ParseFile_INI(configPath.c_str(), &config, NULL, NULL);
+    }
+    catch (std::exception e)
+    {
+        std::cout << "Exception while loading config: " << e.what() << std::endl;
+        return false;
+    }
+
+    EventArgsHandleType = handlesys->CreateType("EventArgs", &eventArgsHandler, 0, NULL, NULL, myself->GetIdentity(), NULL);
     smutils->AddGameFrameHook(OnGameFrame);
 
-    server = new TCPServer(PORT);
+    server = new TCPServer(config.port);
     server->Start();
-    Print(std::string("Started TCP server on ") + to_string(PORT));
+    Print(std::string("Started TCP server on ") + to_string(config.port));
     
     return true;
 }
@@ -151,6 +178,7 @@ const sp_nativeinfo_t NativeFunctions [] =
     {"AddEventListener", AddEventListener},
     {"RemoveEventListener", RemoveEventListener},
     {"RemoveAllEventListeners", RemoveAllEventListeners},
+    {"EventArgs_GetString", smn_EventArgs_GetString},
     {NULL, NULL},
 };
 

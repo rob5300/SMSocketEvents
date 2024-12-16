@@ -1185,16 +1185,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\extension.cpp" />
+    <ClCompile Include="src\Config.cpp" />
+    <ClCompile Include="src\EventArgs.cpp" />
+    <ClCompile Include="src\EventArgs_Handle.cpp" />
+    <ClCompile Include="src\socket_extension.cpp" />
     <ClCompile Include="src\smsdk_ext.cpp" />
     <ClCompile Include="src\TCPServer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Config.h" />
+    <ClInclude Include="src\EventArgs.h" />
+    <ClInclude Include="src\EventArgs_Handle.h" />
     <ClInclude Include="src\EventMessage.h" />
     <ClInclude Include="ext\concurrentqueue.h" />
     <ClInclude Include="ext\nlohmann\json.hpp" />
     <ClInclude Include="ext\nlohmann\json_fwd.hpp" />
-    <ClInclude Include="src\extension.h" />
+    <ClInclude Include="src\socket_extension.h" />
     <ClInclude Include="src\smsdk_config.h" />
     <ClInclude Include="src\TCPServer.hpp" />
   </ItemGroup>

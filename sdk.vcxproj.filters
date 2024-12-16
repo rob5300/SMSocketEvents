@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\extension.cpp">
+    <ClCompile Include="src\socket_extension.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\smsdk_ext.cpp">
@@ -24,9 +24,18 @@
     <ClCompile Include="src\TCPServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\EventArgs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\EventArgs_Handle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\extension.h">
+    <ClInclude Include="src\socket_extension.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\smsdk_config.h">
@@ -45,6 +54,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\EventMessage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\EventArgs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\EventArgs_Handle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
