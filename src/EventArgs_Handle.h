@@ -17,4 +17,7 @@ extern EventArgsHandler eventArgsHandler;
 
 EventArgs* GetEventArgsFromHandle(SourceMod::Handle_t& handle, IPluginContext* pluginContext);
 cell_t smn_EventArgs_GetString(SourcePawn::IPluginContext* pluginContext, const cell_t* params);
-//static cell_t smn_EventArgs_GetInt(IPluginContext* pluginContext, const cell_t* params);
+cell_t smn_EventArgs_GetInt(SourcePawn::IPluginContext* pluginContext, const cell_t* params);
+cell_t smn_EventArgs_GetFloat(SourcePawn::IPluginContext* pluginContext, const cell_t* params);
+cell_t smn_EventArgs_GetBool(SourcePawn::IPluginContext* pluginContext, const cell_t* params);
+cell_t smn_EventArgs_ContainsKey(SourcePawn::IPluginContext* pluginContext, const cell_t* params);

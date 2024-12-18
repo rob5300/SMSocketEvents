@@ -62,6 +62,8 @@ class EventArgs
     std::vector<std::string> GetKeyAsPath(const std::string& key);
     Argument* GetOrAddArgument(const std::string& key);
 
+    Argument* GetArgumentWithPath(const std::vector<std::string>& keyPath);
+
     template <typename T>
     T* GetValueIfSameType(const std::vector<std::string>& keyPath, EventArgumentType type);
 

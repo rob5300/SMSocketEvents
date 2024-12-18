@@ -46,3 +46,66 @@ cell_t smn_EventArgs_GetString(IPluginContext* pluginContext, const cell_t* para
 
 	return 0;
 }
+
+cell_t smn_EventArgs_GetInt(SourcePawn::IPluginContext* pluginContext, const cell_t* params)
+{
+    Handle_t handle = static_cast<Handle_t>(params[1]);
+	EventArgs* eventArgs = GetEventArgsFromHandle(handle, pluginContext);
+	if (eventArgs != nullptr)
+	{
+		char *key;
+		pluginContext->LocalToStringNULL(params[2], &key);
+
+		int32* value = eventArgs->GetInt(std::string(key));
+		if(value != nullptr) return *value;
+	}
+	
+	return 0;
+}
+
+cell_t smn_EventArgs_GetFloat(SourcePawn::IPluginContext* pluginContext, const cell_t* params)
+{
+	Handle_t handle = static_cast<Handle_t>(params[1]);
+	EventArgs* eventArgs = GetEventArgsFromHandle(handle, pluginContext);
+	if (eventArgs != nullptr)
+	{
+		char *key;
+		pluginContext->LocalToStringNULL(params[2], &key);
+
+		float* value = eventArgs->GetFloat(std::string(key));
+		if(value != nullptr) return *value;
+	}
+	
+	return 0;
+}
+
+cell_t smn_EventArgs_GetBool(SourcePawn::IPluginContext* pluginContext, const cell_t* params)
+{
+	Handle_t handle = static_cast<Handle_t>(params[1]);
+	EventArgs* eventArgs = GetEventArgsFromHandle(handle, pluginContext);
+	if (eventArgs != nullptr)
+	{
+		char *key;
+		pluginContext->LocalToStringNULL(params[2], &key);
+
+		bool* value = eventArgs->GetBool(std::string(key));
+		if(value != nullptr) return *value;
+	}
+	
+	return 0;
+}
+
+cell_t smn_EventArgs_ContainsKey(SourcePawn::IPluginContext* pluginContext, const cell_t* params)
+{
+	Handle_t handle = static_cast<Handle_t>(params[1]);
+	EventArgs* eventArgs = GetEventArgsFromHandle(handle, pluginContext);
+	if (eventArgs != nullptr)
+	{
+		char *key;
+		pluginContext->LocalToStringNULL(params[2], &key);
+
+		return eventArgs->ContainsKey(std::string(key));
+	}
+	
+	return 0;
+}

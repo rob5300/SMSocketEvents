@@ -35,7 +35,8 @@ EventArgs::EventArgs(const nlohmann::json& json)
 
 bool EventArgs::ContainsKey(const std::string& key)
 {
-    return argumentMap.find(key) != argumentMap.end();
+    const auto keyPath = GetKeyAsPath(key);
+    return GetArgumentWithPath(keyPath) != nullptr;
 }
 
 std::string* EventArgs::GetString(const std::string& key)
@@ -151,6 +152,29 @@ Argument* EventArgs::GetOrAddArgument(const std::string& key)
         arguments.push_back(arg);
     }
     return arg;
+}
+
+Argument* EventArgs::GetArgumentWithPath(const std::vector<std::string>& keyPath)
+{
+    //Go though event args tree then attempt to get desired value with last key
+    EventArgs* args = this;
+    for (size_t i = 0; i < keyPath.size() - 1; i++)
+    {
+        const auto key = keyPath[i];
+        auto subEventArgs = args->GetEventArgs(key);
+        if (subEventArgs == nullptr)
+        {
+            return nullptr;
+        }
+        else args = subEventArgs;
+    }
+
+    const auto key = keyPath[keyPath.size() - 1];
+    if (args->argumentMap.find(key) != args->argumentMap.end())
+    {
+        return args->argumentMap[key];
+    }
+    else return nullptr;
 }
 
 void Argument::ClearValue()
