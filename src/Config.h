@@ -8,6 +8,7 @@ public:
     int port = 25570;
     bool secure = true;
     std::string public_key;
+    int eventsPerFrame = 4;
 
     virtual unsigned int GetTextParserVersion1();
     virtual bool ReadINI_NewSection (const char *section, bool invalid_tokens, bool close_bracket, bool extra_tokens, unsigned int *curtok);

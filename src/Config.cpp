@@ -21,6 +21,10 @@ bool Config::ReadINI_KeyValue(const char* key, const char* value, bool invalid_t
     {
         public_key = std::string(value);
     }
+    else if (strcmp(key, "eventsPerFrame") == 0)
+    {
+        eventsPerFrame = std::max(std::stoi(value), 1);
+    }
     return true;
 }
 

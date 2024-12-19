@@ -73,7 +73,7 @@ cell_t smn_EventArgs_GetFloat(SourcePawn::IPluginContext* pluginContext, const c
 		pluginContext->LocalToStringNULL(params[2], &key);
 
 		float* value = eventArgs->GetFloat(std::string(key));
-		if(value != nullptr) return *value;
+		if(value != nullptr) return sp_ftoc(*value);
 	}
 	
 	return 0;

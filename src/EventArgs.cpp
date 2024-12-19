@@ -1,4 +1,6 @@
 #include "EventArgs.h"
+#include <iostream>
+#include <string>
 
 using json = nlohmann::json;
 
@@ -8,6 +10,11 @@ EventArgs::EventArgs(const nlohmann::json& json)
     {
         auto key = pair.key();
         auto value = pair.value();
+        if (value.is_array())
+        {
+            //Arrays are not supported yet
+            continue;
+        }
         const auto type = value.type();
         switch (type)
         {
@@ -15,6 +22,7 @@ EventArgs::EventArgs(const nlohmann::json& json)
                 SetString(key, value.get<std::string>());
                 break;
 
+            case json::value_t::number_unsigned:
             case json::value_t::number_integer:
                 SetInt(key, value.get<int32>());
                 break;
@@ -29,6 +37,11 @@ EventArgs::EventArgs(const nlohmann::json& json)
 
             case json::value_t::object:
                 SetEventArgs(key, new EventArgs(value));
+                break;
+
+            default:
+                std::cout << "EventArgs: Un-recognised type for var: " << key << ". (" << static_cast<std::uint8_t>(type) << ")" << std::endl;
+                break;
         }
     }
 }

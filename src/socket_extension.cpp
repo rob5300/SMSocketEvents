@@ -65,43 +65,49 @@ void SocketExtension::Print(string toPrint)
 
 void OnGameFrame(bool simulated)
 {
-    EventMessage eventMessage;
-    if (server->eventQueue.try_dequeue(eventMessage))
+    //Try to dequeue and send many events this frame
+    for (size_t i = 0; i < config.eventsPerFrame; i++)
     {
-        if (eventMessage.args == nullptr)
+        EventMessage eventMessage;
+        if (server->eventQueue.try_dequeue(eventMessage))
         {
-            std::cout << "Event '" << eventMessage.name << "' was missing valid arguments." << std::endl;
-            return;
-        }
-
-        //We have a message to dispatch!
-        if (eventForwards.find(eventMessage.name) != eventForwards.end())
-        {
-            auto forward = eventForwards[eventMessage.name];
-            cell_t result = 0;
-            
-            HandleError error = HandleError_None;
-            const auto keyValuesHandle = handlesys->CreateHandle(EventArgsHandleType, eventMessage.args, NULL, myself->GetIdentity(), &error);
-            if (error == 0)
+            if (eventMessage.args == nullptr)
             {
-                forward->Cancel();
-                forward->PushCell(keyValuesHandle);
-	            forward->Execute(&result);
+                std::cout << "Event '" << eventMessage.name << "' was missing valid arguments." << std::endl;
+                return;
+            }
+
+            //We have a message to dispatch!
+            if (eventForwards.find(eventMessage.name) != eventForwards.end())
+            {
+                auto forward = eventForwards[eventMessage.name];
+                cell_t result = 0;
+            
+                HandleError error = HandleError_None;
+                const auto keyValuesHandle = handlesys->CreateHandle(EventArgsHandleType, eventMessage.args, NULL, myself->GetIdentity(), &error);
+                if (error == 0)
+                {
+                    forward->Cancel();
+                    forward->PushCell(keyValuesHandle);
+	                forward->Execute(&result);
  
-	            if (result == Pl_Handled)
-	            {
-		            std::cout << "Event '" << eventMessage.name << "' sent" << std::endl;
-	            }
+	                if (result == Pl_Handled)
+	                {
+		                std::cout << "Event '" << eventMessage.name << "' sent" << std::endl;
+	                }
+                }
+                else
+                {
+                    std::cout << "Handle creation error " << error << std::endl;
+                }
             }
             else
             {
-                std::cout << "Handle creation error " << error << std::endl;
+                std::cout << "Received Event '" << eventMessage.name << "' but there are 0 subscribers" << std::endl;
             }
         }
-        else
-        {
-            std::cout << "Received Event '" << eventMessage.name << "' but there are 0 subscribers" << std::endl;
-        }
+        //Stop now as no events can be de queued.
+        else break;
     }
 }
 
@@ -181,10 +187,20 @@ static cell_t RemoveAllEventListeners(IPluginContext *pContext, const cell_t *pa
 
 const sp_nativeinfo_t NativeFunctions [] =
 {
-    {"AddEventListener", AddEventListener},
-    {"RemoveEventListener", RemoveEventListener},
+    {"AddEventListener",        AddEventListener},
+    {"RemoveEventListener",     RemoveEventListener},
     {"RemoveAllEventListeners", RemoveAllEventListeners},
-    {"EventArgs_GetString", smn_EventArgs_GetString},
+    {"EventArgs_GetString",     smn_EventArgs_GetString},
+    {"EventArgs_GetInt",        smn_EventArgs_GetInt},
+    {"EventArgs_GetFloat",      smn_EventArgs_GetFloat},
+    {"EventArgs_GetBool",       smn_EventArgs_GetBool},
+    {"EventArgs_ContainsKey",   smn_EventArgs_ContainsKey},
+
+    {"EventArgs.GetString",     smn_EventArgs_GetString},
+    {"EventArgs.GetInt",        smn_EventArgs_GetInt},
+    {"EventArgs.GetFloat",      smn_EventArgs_GetFloat},
+    {"EventArgs.GetBool",       smn_EventArgs_GetBool},
+    {"EventArgs.ContainsKey",   smn_EventArgs_ContainsKey},
     {NULL, NULL},
 };
 

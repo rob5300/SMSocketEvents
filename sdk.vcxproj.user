@@ -7,5 +7,8 @@
     <LocalDebuggerCommand>"F:\tf2_server\server\srcds.exe"</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>-game tf -console -port 27015 -strictportbind +maxplayers 24 +map pl_upward</LocalDebuggerCommandArguments>
+    <LocalDebuggerAttach>false</LocalDebuggerAttach>
+    <LocalDebuggerDebuggerType>NativeOnly</LocalDebuggerDebuggerType>
+    <LocalDebuggerWorkingDirectory>F:\tf2_server\server\</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
 </Project>
