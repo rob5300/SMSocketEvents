@@ -102,10 +102,12 @@ inline T* EventArgs::GetValueIfSameType(const std::vector<std::string>& keyPath,
 template<typename T>
 inline T* EventArgs::GetValueIfSameType(const std::string& key, EventArgumentType type)
 {
-    if (ContainsKey(key))
-    {
-        Argument* arg = GetOrAddArgument(key);
-        return arg->type == type ? static_cast<T*>(arg->value) : nullptr;
+    auto keyPath = GetKeyAsPath(key);
+    Argument* arg = GetArgumentWithPath(keyPath);
+    //If argument exists and types match, return value casted
+    if (arg != nullptr && arg->type == type && arg->value != nullptr)
+    {   
+        return static_cast<T*>(arg->value);
     }
 
     return nullptr;

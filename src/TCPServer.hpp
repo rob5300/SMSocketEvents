@@ -3,7 +3,7 @@
 #include <memory.h>
 #include <string.h>
 #include <nlohmann/json.hpp>
-#include "KeyValues.h"
+#include <boost/asio.hpp>
 #include "concurrentqueue.h"
 #include "EventMessage.h"
 
@@ -27,7 +27,14 @@ class TCPServer
 		bool running;
 		int32_t port;
 		std::unique_ptr<std::thread> thread;
-		void ServerLoop();
+		boost::asio::io_context io_context;
+		boost::asio::ip::tcp::acceptor acceptor;
+		boost::asio::ip::tcp::socket socket;
+		boost::asio::ip::tcp::endpoint endpoint;
+		void ServerRun();
+		void StartAccept();
+		void HandleAccept(const boost::system::error_code& error);
+		void AcceptMessageHeaderAndBody();
 
 		/// <summary>
 		/// Parse message json and enqueue a new event message

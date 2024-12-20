@@ -11,100 +11,122 @@ using namespace boost;
 //Max buffer size of 10MB;
 constexpr long MAX_BUFFER_SIZE = 1024l * 1024l * 10l;
 
-TCPServer::TCPServer(int32_t port)
+TCPServer::TCPServer(int32_t port) :
+	io_context(), endpoint(tcp::endpoint(tcp::v4(), port)), acceptor(io_context), socket(io_context)
 {
 	this->port = port;
-    running = false;
+	running = false;
 }
 
 void TCPServer::Start()
 {
 	if (!running)
 	{
-        running = true;
-		thread = std::make_unique<std::thread>(&TCPServer::ServerLoop, this);
+		running = true;
+		acceptor.open(endpoint.protocol());
+		acceptor.set_option(tcp::acceptor::reuse_address(true));
+		acceptor.bind(endpoint);
+		acceptor.listen();
+		thread = std::make_unique<std::thread>(&TCPServer::ServerRun, this);
 	}
 }
 
 void TCPServer::Stop()
 {
-    running = false;
-    thread->join();
+	running = false;
+	try
+	{
+		acceptor.cancel();
+		socket.close();
+	}
+	catch (const std::exception e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+
+	thread->join();
 }
 
 void TCPServer::ParseMessageAndEnqueue(json& json)
 {
-    if (json.contains("event") && json.contains("args"))
-    {
-        EventMessage eventMessage;
-        eventMessage.name = json["event"];
-        eventMessage.args = new EventArgs(json["args"]);
-        eventQueue.enqueue(eventMessage);
-    }
-    else
-    {
-        std::cout << "Received message was missing 'event' and/or 'args' from payload " << std::endl;
-    }
+	if (json.contains("event") && json.contains("args"))
+	{
+		EventMessage eventMessage;
+		eventMessage.name = json["event"];
+		eventMessage.args = new EventArgs(json["args"]);
+		eventQueue.enqueue(eventMessage);
+	}
+	else
+	{
+		std::cout << "Received message was missing 'event' and/or 'args' from payload " << std::endl;
+	}
 }
 
-void TCPServer::ServerLoop()
+void TCPServer::ServerRun()
 {
+	while (running)
+	{
+		try
+		{
+			acceptor.accept(socket);
+			AcceptMessageHeaderAndBody();
+			socket.close();
+		}
+		catch (const std::exception& e)
+		{
+			std::cout << "Server Exception: " << e.what() << std::endl;
+		}
+	}
+
+	if (!socket.is_open())
+	{
+		std::cout << "Socket on port '" << std::to_string(port) << "' was closed." << std::endl;
+	}
+}
+
+void TCPServer::AcceptMessageHeaderAndBody()
+{
+	socket.wait(boost::asio::socket_base::wait_read);
+
+	EventMessageHeader header;
 	try
-    {
-        asio::io_context io_context;
-        tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), port));
+	{
+		const size_t headerReadLen = boost::asio::read(socket, asio::buffer(&header, sizeof(EventMessageHeader)));
+	}
+	catch (const std::exception& e)
+	{
+		std::cout << "Header parse exception: " << e.what() << std::endl;
+		acceptor.cancel();
+		return;
+	}
 
-        while (running)
-	    {
-            tcp::socket socket(io_context);
-            acceptor.accept(socket);
+	if (!running) return;
 
-            socket.wait(tcp::socket::wait_read);
+	if (std::strncmp(header.magicString, EVENT_MAGIC_STRING, 8) == 0)
+	{
+		if (header.dataLength > MAX_BUFFER_SIZE)
+		{
+			//Do not accept buffer with size larger than the max
+			acceptor.cancel();
+			return;
+		}
 
-            EventMessageHeader header;
-            try
-            {
-                const size_t headerReadLen = boost::asio::read(socket, asio::buffer(&header, sizeof(EventMessageHeader)));
-            }
-            catch (const std::exception& e)
-            {
-                std::cout << "Header parse exception: " << e.what() << std::endl;
-                continue;
-            }
-            
-            if (std::strncmp(header.magicString, EVENT_MAGIC_STRING, 8) == 0)
-            {
-                if (header.dataLength > MAX_BUFFER_SIZE)
-                {
-                    //Do not accept buffer with size larger than the max
-                    continue;
-                }
-
-                socket.wait(tcp::socket::wait_read);
-                //Make char buffer for incoming json.
-                //Make it 1 bigger to ensure it is null terminated
-                char* read_string = new char[header.dataLength + 1];
-                read_string[header.dataLength] = 0;
-                try
-                {
-                    const size_t readLen = boost::asio::read(socket, boost::asio::buffer(read_string, header.dataLength));
-                    auto json = json::parse(read_string);
-                    ParseMessageAndEnqueue(json);
-                }
-                catch (const std::exception& e)
-                {
-                    std::cout << "Message parse exception: " << e.what() << std::endl;
-                }
-                delete[] read_string;
-            }
-
-            //std::string message = "Test123abc!";
-            //boost::system::error_code ignored_error;
-            //boost::asio::write(socket, boost::asio::buffer(message), ignored_error);
-	    }
-    }
-    catch (std::exception& e)
-    {
-        std::cout << "Server Exception: " << e.what() << std::endl;
-    }
+		socket.wait(tcp::socket::wait_read);
+		//Make char buffer for incoming json.
+		//Make it 1 bigger to ensure it is null terminated
+		char* read_string = new char[header.dataLength + 1];
+		read_string[header.dataLength] = 0;
+		try
+		{
+			const size_t readLen = boost::asio::read(socket, boost::asio::buffer(read_string, header.dataLength));
+			auto json = json::parse(read_string);
+			ParseMessageAndEnqueue(json);
+		}
+		catch (const std::exception& e)
+		{
+			std::cout << "Message parse exception: " << e.what() << std::endl;
+			acceptor.cancel();
+		}
+		delete[] read_string;
+	}
 }
