@@ -478,7 +478,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <AdditionalIncludeDirectories>..\sourcemod;..\sourcemod\public;..\hl2sdk-tf2\public\;..\hl2sdk-tf2\public\tier1;..\mmsource-1.10\core;..\sourcemod\sourcepawn\third_party\amtl\amtl;..\mmsource-1.10\core\sourcehook;..\sourcemod\sourcepawn\include;..\hl2sdk-tf2\public\tier0;..\sourcemod\sourcepawn\third_party\amtl\;..\sourcemod\sourcepawn;ext\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SDK_EXPORTS;_CRT_SECURE_NO_DEPRECATE;SOURCEMOD_BUILD;KE_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
@@ -490,7 +490,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
     <Link>
@@ -1185,6 +1185,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Argument.cpp" />
     <ClCompile Include="src\Config.cpp" />
     <ClCompile Include="src\EventArgs.cpp" />
     <ClCompile Include="src\EventArgs_Handle.cpp" />
@@ -1193,6 +1194,8 @@
     <ClCompile Include="src\TCPServer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ArgumentException.h" />
+    <ClInclude Include="src\Argument.h" />
     <ClInclude Include="src\Config.h" />
     <ClInclude Include="src\EventArgs.h" />
     <ClInclude Include="src\EventArgs_Handle.h" />

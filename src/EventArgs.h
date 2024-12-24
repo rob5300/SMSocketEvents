@@ -4,93 +4,122 @@
 #include <map>
 #include <smsdk_ext.h>
 #include <nlohmann/json.hpp>
-
-enum EventArgumentType
-{
-    EventArgumentType_NONE = 0,
-    EventArgumentType_INT_32 = 1,
-    EventArgumentType_STRING = 2,
-    EventArgumentType_FLOAT = 3,
-    EventArgumentType_BOOL = 4,
-    EventArgumentType_ARGS = 5
-};
-
-class Argument
-{
-    public:
-    std::string key;
-    void* value;
-    EventArgumentType type;
-
-    Argument(const std::string& key, void* value, const EventArgumentType& type)
-        : key(key), value(value), type(type)
-    {}
-
-    Argument(const std::string& key) : key(key), value(nullptr), type(EventArgumentType_NONE){};
-
-    void ClearValue();
-
-    ~Argument();
-};
+#include <utility>
+#include <iostream>
+#include <exception>
+#include "Argument.h"
 
 class EventArgs
 {
     public:
+    EventArgs();
     explicit EventArgs(const nlohmann::json& json);
     ~EventArgs();
+
     bool ContainsKey(const std::string& key);
 
     std::string* GetString(const std::string& key);
+    std::shared_ptr<std::string[]> GetStringArray(const std::string& key);
     void SetString(const std::string& key, const std::string& value);
 
     int* GetInt(const std::string& key);
-    void SetInt(std::string& key, int32 value);
+    std::shared_ptr<int32[]> GetIntArray(const std::string& key);
+    void SetInt(const std::string& key, int32 value);
 
     float* GetFloat(const std::string& key);
-    void SetFloat(std::string& key, float value);
+    std::shared_ptr<float[]> GetFloatArray(const std::string& key);
+    void SetFloat(const std::string& key, float value);
 
     bool* GetBool(const std::string& key);
-    void SetBool(std::string& key, bool value);
+    void SetBool(const std::string& key, bool value);
 
     EventArgs* GetEventArgs(const std::string& key);
-    void SetEventArgs(const std::string& key, EventArgs* object);
+    void SetEventArgs(const std::string& key, EventArgs& object);
+
+    std::any* GetValueRaw(const std::string& key);
+
+    size_t GetArrayLength(const std::string& key);
+
+    Argument* GetArgument(const std::string& key);
+    Argument* GetArgumentWithPath(const std::string& keyPath);
+    Argument* GetArgumentWithPath(const std::vector<std::string>& keyPath);
 
     private:
-    std::vector<Argument*> arguments;
-    std::map<std::string, Argument*> argumentMap;
+    static EventArgumentType JsonTypeToArgumentType(const nlohmann::json::value_t valueType);
+    std::map<std::string, Argument> argumentMap;
 
     std::vector<std::string> GetKeyAsPath(const std::string& key);
     Argument* GetOrAddArgument(const std::string& key);
 
-    Argument* GetArgumentWithPath(const std::vector<std::string>& keyPath);
+    template <typename T>
+    T* GetValueIfSameType(const std::vector<std::string>& keyPath, EventArgumentType type, bool isArray);
 
     template <typename T>
-    T* GetValueIfSameType(const std::vector<std::string>& keyPath, EventArgumentType type);
+    T* GetValueIfSameType(const std::string& key, EventArgumentType type, bool isArray);
 
     template <typename T>
-    T* GetValueIfSameType(const std::string& key, EventArgumentType type);
+    std::shared_ptr<T[]> GetArrayValueIfSameType(const std::vector<std::string>& keyPath, EventArgumentType type);
 };
 
 template<typename T>
-inline T* EventArgs::GetValueIfSameType(const std::vector<std::string>& keyPath, EventArgumentType type)
+inline T* EventArgs::GetValueIfSameType(const std::vector<std::string>& keyPath, EventArgumentType type, bool isArray)
 {
-    //Go though event args tree then attempt to get desired value with last key
-    EventArgs* args = this;
-    for (size_t i = 0; i < keyPath.size() - 1; i++)
+    EventArgs* lastEventArgs = this;
+    Argument* lastArg = nullptr;
+
+    //Loop over key path either getting next event args or argument.
+    //If we cannot go deeper but have an array arg, try to get array element, else the arg value is returned as normal.
+    for (size_t i = 0; i < keyPath.size(); i++)
     {
         const auto key = keyPath[i];
-        auto subEventArgs = args->GetEventArgs(key);
-        if (subEventArgs == nullptr)
+        //If we have event args here, get next key
+        if (lastEventArgs != nullptr)
+        {
+            Argument* arg = lastEventArgs->GetArgument(key);
+            if (arg != nullptr)
+            {
+                lastArg = arg;
+                lastEventArgs = nullptr;
+                if (arg->type == EventArgumentType_ARGS)
+                {
+                    lastEventArgs = lastArg->GetValue<EventArgs>();
+                }
+            }
+        }
+        else if (lastArg != nullptr && lastArg->isArray)
+        {
+            //Try to parse key as index and get index value.
+            //If event args array, get event args and continue, else get value and return early!
+            try
+            {
+                int index = std::stoi(key);
+                if (lastArg->type == EventArgumentType_ARGS)
+                {
+                    lastEventArgs = lastArg->GetArrayValueElement<EventArgs>(index);
+                    lastArg = nullptr;
+                }
+                else if(lastArg->type == type)
+                {
+                    //Return array value at index
+                    return lastArg->GetArrayValueElement<T>(index);
+                }
+            }
+            catch (const std::exception e)
+            {
+                std::cerr << "GetValueIfSameType error:" << e.what() << std::endl;
+                return nullptr;
+            }
+        }
+        else
         {
             return nullptr;
         }
-        else args = subEventArgs;
     }
 
-    if (args != nullptr)
+    //If the last arg matches the type and array, return its value
+    if (lastArg != nullptr && lastArg->type == type && lastArg->isArray == isArray)
     {
-        //Get value with final key
-        return args->GetValueIfSameType<T>(keyPath[keyPath.size() - 1], type);
+        return lastArg->GetValue<T>();
     }
 
     return nullptr;
@@ -100,14 +129,18 @@ inline T* EventArgs::GetValueIfSameType(const std::vector<std::string>& keyPath,
 /// Get the value pointer for a key if it exists and its type matches the provided type enum.
 /// </summary>
 template<typename T>
-inline T* EventArgs::GetValueIfSameType(const std::string& key, EventArgumentType type)
+inline T* EventArgs::GetValueIfSameType(const std::string& key, EventArgumentType type, bool isArray)
 {
-    auto keyPath = GetKeyAsPath(key);
+    return EventArgs::GetValueIfSameType<T>(GetKeyAsPath(key), type, isArray);
+}
+
+template<typename T>
+inline std::shared_ptr<T[]> EventArgs::GetArrayValueIfSameType(const std::vector<std::string>& keyPath, EventArgumentType type)
+{
     Argument* arg = GetArgumentWithPath(keyPath);
-    //If argument exists and types match, return value casted
-    if (arg != nullptr && arg->type == type && arg->value != nullptr)
-    {   
-        return static_cast<T*>(arg->value);
+    if (arg != nullptr && arg->isArray && arg->type == type)
+    {
+        return arg->GetValueAsArray<T>();
     }
 
     return nullptr;

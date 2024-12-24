@@ -11,6 +11,7 @@ methodmap EventArgs < Handle
     public native float GetFloat(const char[] key);
     public native bool GetBool(const char[] key);
     public native bool ContainsKey(const char[] key);
+    public native bool IsArray(const char[] key);
 }
 
 native bool EventArgs_GetString(Handle kv, const char[] key, char[] value, int maxlength);
@@ -18,3 +19,4 @@ native int EventArgs_GetInt(Handle kv, const char[] key);
 native float EventArgs_GetFloat(Handle kv, const char[] key);
 native bool EventArgs_GetBool(Handle kv, const char[] key);
 native bool EventArgs_ContainsKey(Handle kv, const char[] key);
+native bool EventArgs_IsArray(Handle kv, const char[] key);

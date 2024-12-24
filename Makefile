@@ -133,7 +133,7 @@ LINK += -Lboost -m32 -L/usr/lib/i386-linux-gnu/ -lm -ldl -lstdc++fs -lstdc++ -st
 CFLAGS += -DPOSIX -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp \
 	-D_snprintf=snprintf -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC -Wall \
 	-Wno-overloaded-virtual -Wno-switch -Wno-unused -msse -DSOURCEMOD_BUILD -DHAVE_STDINT_H -m32 -DGNUC 
-CPPFLAGS += -Wno-non-virtual-dtor -fno-rtti -std=c++14 -fpermissive -fexceptions -fvisibility-inlines-hidden -fvisibility-inlines-hidden -fvisibility-inlines-hidden -Wno-register
+CPPFLAGS += -Wno-non-virtual-dtor -fno-rtti -std=c++17 -fpermissive -fexceptions -fvisibility-inlines-hidden -fvisibility-inlines-hidden -fvisibility-inlines-hidden -Wno-register
 
 ################################################
 ### DO NOT EDIT BELOW HERE FOR MOST PROJECTS ###

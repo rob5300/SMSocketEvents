@@ -187,20 +187,22 @@ static cell_t RemoveAllEventListeners(IPluginContext *pContext, const cell_t *pa
 
 const sp_nativeinfo_t NativeFunctions [] =
 {
-    {"AddEventListener",        AddEventListener},
-    {"RemoveEventListener",     RemoveEventListener},
-    {"RemoveAllEventListeners", RemoveAllEventListeners},
-    {"EventArgs_GetString",     smn_EventArgs_GetString},
-    {"EventArgs_GetInt",        smn_EventArgs_GetInt},
-    {"EventArgs_GetFloat",      smn_EventArgs_GetFloat},
-    {"EventArgs_GetBool",       smn_EventArgs_GetBool},
-    {"EventArgs_ContainsKey",   smn_EventArgs_ContainsKey},
+    {"AddEventListener",            AddEventListener},
+    {"RemoveEventListener",         RemoveEventListener},
+    {"RemoveAllEventListeners",     RemoveAllEventListeners},
+    {"EventArgs_GetString",         smn_EventArgs_GetString},
+    {"EventArgs_GetInt",            smn_EventArgs_GetInt},
+    {"EventArgs_GetFloat",          smn_EventArgs_GetFloat},
+    {"EventArgs_GetBool",           smn_EventArgs_GetBool},
+    {"EventArgs_ContainsKey",       smn_EventArgs_ContainsKey},
+    {"EventArgs_IsArray",           smn_EventArgs_IsArray},
 
-    {"EventArgs.GetString",     smn_EventArgs_GetString},
-    {"EventArgs.GetInt",        smn_EventArgs_GetInt},
-    {"EventArgs.GetFloat",      smn_EventArgs_GetFloat},
-    {"EventArgs.GetBool",       smn_EventArgs_GetBool},
-    {"EventArgs.ContainsKey",   smn_EventArgs_ContainsKey},
+    {"EventArgs.GetString",         smn_EventArgs_GetString},
+    {"EventArgs.GetInt",            smn_EventArgs_GetInt},
+    {"EventArgs.GetFloat",          smn_EventArgs_GetFloat},
+    {"EventArgs.GetBool",           smn_EventArgs_GetBool},
+    {"EventArgs.ContainsKey",       smn_EventArgs_ContainsKey},
+    {"EventArgs.IsArray",           smn_EventArgs_IsArray},
     {NULL, NULL},
 };
 

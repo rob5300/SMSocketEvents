@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <smsdk_ext.h>
 #include "EventArgs.h"
 
@@ -21,3 +21,37 @@ cell_t smn_EventArgs_GetInt(SourcePawn::IPluginContext* pluginContext, const cel
 cell_t smn_EventArgs_GetFloat(SourcePawn::IPluginContext* pluginContext, const cell_t* params);
 cell_t smn_EventArgs_GetBool(SourcePawn::IPluginContext* pluginContext, const cell_t* params);
 cell_t smn_EventArgs_ContainsKey(SourcePawn::IPluginContext* pluginContext, const cell_t* params);
+cell_t smn_EventArgs_IsArray(SourcePawn::IPluginContext* pluginContext, const cell_t* params);
+cell_t smn_EventArgs_GetArrayLength(SourcePawn::IPluginContext* pluginContext, const cell_t* params);
+
+/*
+template <typename T>
+bool CopyArrayToPluginArray(T* fromArray, size_t size, SourcePawn::IPluginContext* pluginContext, const cell_t* params);
+
+template<typename T>
+inline bool CopyArrayToPluginArray(T* fromArray, size_t size, SourcePawn::IPluginContext* pluginContext, const cell_t* params)
+{
+    if (fromArray != nullptr)
+    {
+        cell_t spArraySize = params[4];
+
+        if (spArraySize < size)
+        {
+            //❗Throw error: Array in sp is too small!
+            pluginContext->ThrowNativeError("Array needs to be '%d' or larger", value.second);
+            return false;
+        }
+        
+        cell_t* pluginArray;
+        pluginContext->LocalToPhysAddr(params[3], &pluginArray);
+        for (cell_t i = 0; i < spArraySize; i++)
+        {
+            pluginArray[i] = fromArray[i];
+        }
+
+        return true;
+    }
+
+    return false;
+}
+*/
