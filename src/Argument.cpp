@@ -2,6 +2,7 @@
 
 void Argument::ClearValue()
 {
-    value = nullptr;
+    value.reset();
     type = EventArgumentType_NONE;
+    length = 0;
 }

@@ -21,7 +21,10 @@ class Argument
 {
     public:
 
+    // Key of argument, empty string if unset.
     std::string key;
+
+    // Argument value. Can be std::string, int32, bool, float, EventArgs or shared_ptr<T[]>
     std::any value;
 
     /// <summary>
@@ -34,6 +37,7 @@ class Argument
     /// </summary>
     bool isArray;
 
+    // Length of array, else 0.
     size_t length = 0;
 
     Argument()
@@ -51,7 +55,7 @@ class Argument
     void ClearValue();
 
     /// <summary>
-    /// Parse json value as an array of type T. Stored as std::vector T
+    /// Parse json value as an array of type T. Stored as std::shared_ptr<T[]>
     /// </summary>
     template<typename T>
     void SetValueAsArray(const nlohmann::json& json, const EventArgumentType type);
@@ -71,6 +75,7 @@ inline void Argument::SetValueAsArray(const nlohmann::json& json, const EventArg
 {
     if (json.is_array())
     {
+        //Store new array in shared pointer so any storage is better
         std::shared_ptr<T[]> valueArray = std::shared_ptr<T[]>(new T[json.size()]);
         for (size_t i = 0; i < json.size(); i++)
         {
@@ -114,8 +119,8 @@ inline std::shared_ptr<T[]> Argument::GetValueAsArray()
 template<typename T>
 inline T* Argument::GetArrayValueElement(size_t index)
 {
-    //Return nullptr if out of range
-    if(index < 0 || index >= length) return nullptr;
+    //Return nullptr if out of range or no value
+    if((index < 0 || index >= length) && value.has_value()) return nullptr;
 
     std::shared_ptr<T[]> arraySharedPtr = GetValueAsArray<T>();
     return &arraySharedPtr.get()[index];
