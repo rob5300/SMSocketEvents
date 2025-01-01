@@ -173,7 +173,7 @@ EventArgs* EventArgs::GetEventArgs(const std::string& key)
     return GetValueIfSameType<EventArgs>(key, EventArgumentType_ARGS, false);
 }
 
-void EventArgs::SetEventArgs(const std::string& key, EventArgs& object)
+void EventArgs::SetEventArgs(const std::string& key, const EventArgs& object)
 {
     Argument* arg = GetOrAddArgument(key);
     arg->ClearValue();

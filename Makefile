@@ -21,7 +21,7 @@ ENGINE = original
 ### EDIT BELOW FOR OTHER PROJECTS ###
 #####################################
 
-PROJECT = socket_ext
+PROJECT = socketevents
 
 #Uncomment for Metamod: Source enabled extension
 USEMETA = true
@@ -112,6 +112,7 @@ else
 endif
 
 INCLUDE += -Iext/ -Isrc/ -I$(SMSDK) -I$(SMSDK)/public -I$(SMSDK)/public -I$(SMSDK)/sourcepawn/include -I$(SMSDK)/sourcepawn/third_party -I$(SMSDK)/sourcepawn/third_party/amtl/amtl -I$(SMSDK)/sourcepawn/third_party/amtl -I$(HL2SDK_TF2)/public -I$(HL2SDK_TF2)/public/engine -I$(HL2SDK_TF2)/public/tier1 -I$(HL2SDK_TF2)/public/tier0 -I$(MMSOURCE19)/core -I$(MMSOURCE19)/core/sourcehook -I$(HL2SDK_TF2)/public/mathlib -I$(HL2SDK_TF2)/vstdlib -I$(HL2SDK_TF2)/public/game/server -I$(HL2SDK_TF2)/game/shared -I$(HL2SDK_TF2)/common -I$(HL2SDK_TF2)/public/toolframework
+INCLUDE += -I vcpkg_installed/x86-windows/include
 
 ifeq "$(USEMETA)" "true"
 	LINK_HL2 = -L $(HL2LIB) -l tier0_srv -l vstdlib_srv
@@ -128,7 +129,7 @@ ifeq "$(USEMETA)" "true"
 		-DSE_PORTAL2=11 -DSE_CSGO=12 -DSE_TF2=11
 endif
 
-LINK += -Lboost -m32 -L/usr/lib/i386-linux-gnu/ -lm -ldl -lstdc++fs -lstdc++ -static-libgcc
+LINK += -Lboost -Lopenssl -m32 -L/usr/lib/i386-linux-gnu/ -lm -ldl -lstdc++fs -lstdc++ -static-libgcc
 
 CFLAGS += -DPOSIX -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp \
 	-D_snprintf=snprintf -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC -Wall \

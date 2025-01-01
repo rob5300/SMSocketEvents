@@ -32,12 +32,12 @@
  */
 
 /* Basic information exposed publicly */
-#define SMEXT_CONF_NAME			"Socket Extension"
+#define SMEXT_CONF_NAME			"SocketEvents Extension"
 #define SMEXT_CONF_DESCRIPTION	""
 #define SMEXT_CONF_VERSION		"0.0.1"
 #define SMEXT_CONF_AUTHOR		"rob5300"
 #define SMEXT_CONF_URL			""
-#define SMEXT_CONF_LOGTAG		"SocketExt"
+#define SMEXT_CONF_LOGTAG		"SocketEvents"
 #define SMEXT_CONF_LICENSE		"GPL"
 #define SMEXT_CONF_DATESTRING	__DATE__
 

@@ -12,11 +12,14 @@ methodmap EventArgs < Handle
     public native bool GetBool(const char[] key);
     public native bool ContainsKey(const char[] key);
     public native bool IsArray(const char[] key);
+    public native int GetArrayLength(const char[] key);
 }
 
-native bool EventArgs_GetString(Handle kv, const char[] key, char[] value, int maxlength);
-native int EventArgs_GetInt(Handle kv, const char[] key);
-native float EventArgs_GetFloat(Handle kv, const char[] key);
-native bool EventArgs_GetBool(Handle kv, const char[] key);
-native bool EventArgs_ContainsKey(Handle kv, const char[] key);
-native bool EventArgs_IsArray(Handle kv, const char[] key);
+//Fallback functions using Handle
+native bool EventArgs_GetString(Handle eventArgs, const char[] key, char[] value, int maxlength);
+native int EventArgs_GetInt(Handle eventArgs, const char[] key);
+native float EventArgs_GetFloat(Handle eventArgs, const char[] key);
+native bool EventArgs_GetBool(Handle eventArgs, const char[] key);
+native bool EventArgs_ContainsKey(Handle eventArgs, const char[] key);
+native bool EventArgs_IsArray(Handle eventArgs, const char[] key);
+native int EventArgs_GetArrayLength(Handle eventArgs, const char[] key);

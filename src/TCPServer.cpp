@@ -11,11 +11,12 @@ using namespace boost;
 //Max buffer size of 10MB;
 constexpr long MAX_BUFFER_SIZE = 1024l * 1024l * 10l;
 
-TCPServer::TCPServer(int32_t port) :
-	io_context(), endpoint(tcp::endpoint(tcp::v4(), port)), acceptor(io_context), socket(io_context)
+TCPServer::TCPServer(Config* config) :
+	config(config), io_context(), endpoint(tcp::endpoint(tcp::v4(), config->port)), acceptor(io_context), socket(io_context)
 {
 	this->port = port;
 	running = false;
+	sigHelper = std::make_unique<SignatureHelper>(config->public_key);
 }
 
 void TCPServer::Start()
@@ -58,7 +59,7 @@ void TCPServer::ParseMessageAndEnqueue(json& json)
 	}
 	else
 	{
-		std::cout << "Received message was missing 'event' and/or 'args' from payload " << std::endl;
+		std::cout << "[Socket Events] Received message was missing 'event' and/or 'args' from payload " << std::endl;
 	}
 }
 
@@ -95,7 +96,7 @@ void TCPServer::AcceptMessageHeaderAndBody()
 	}
 	catch (const std::exception& e)
 	{
-		std::cout << "Header parse exception: " << e.what() << std::endl;
+		std::cout << "[Socket Events] Header parse exception: " << e.what() << std::endl;
 		acceptor.cancel();
 		return;
 	}
@@ -112,21 +113,33 @@ void TCPServer::AcceptMessageHeaderAndBody()
 		}
 
 		socket.wait(tcp::socket::wait_read);
+
 		//Make char buffer for incoming json.
-		//Make it 1 bigger to ensure it is null terminated
-		char* read_string = new char[header.dataLength + 1];
-		read_string[header.dataLength] = 0;
+		const size_t bufferSize = header.dataLength;
+		std::unique_ptr<char[]> read_string = std::make_unique<char[]>(bufferSize + 1);
+		
 		try
 		{
-			const size_t readLen = boost::asio::read(socket, boost::asio::buffer(read_string, header.dataLength));
-			auto json = json::parse(read_string);
+			const size_t readLen = boost::asio::read(socket, boost::asio::buffer(read_string.get(), header.dataLength));
+
+			//Verify signature if enabled
+			if (config->secure)
+			{
+				const bool sigMatch = sigHelper->IsValid(read_string.get(), bufferSize, reinterpret_cast<unsigned char*>(header.signature), sizeof(header.signature));
+				if (!sigMatch)
+				{
+					std::cout << "[Socket Events] Message signature validation failed" << std::endl;
+					return;
+				}
+			}
+
+			auto json = json::parse(read_string.get());
 			ParseMessageAndEnqueue(json);
 		}
 		catch (const std::exception& e)
 		{
-			std::cout << "Message parse exception: " << e.what() << std::endl;
+			std::cout << "[Socket Events] Message parse exception:\n" << e.what() << std::endl;
 			acceptor.cancel();
 		}
-		delete[] read_string;
 	}
 }

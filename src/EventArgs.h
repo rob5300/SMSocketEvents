@@ -34,7 +34,7 @@ class EventArgs
     void SetBool(const std::string& key, bool value);
 
     EventArgs* GetEventArgs(const std::string& key);
-    void SetEventArgs(const std::string& key, EventArgs& object);
+    void SetEventArgs(const std::string& key, const EventArgs& object);
 
     std::any* GetValueRaw(const std::string& key);
 

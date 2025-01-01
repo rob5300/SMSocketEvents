@@ -12,6 +12,7 @@
 #include <iostream>
 #include <sstream>
 #include <map>
+#include <filesystem>
 #include "socket_extension.h"
 #include "TCPServer.hpp"
 #include "Config.h"
@@ -20,11 +21,12 @@
 
 using namespace SourceMod;
 using namespace std;
+using namespace std::filesystem;
 
 SocketExtension g_socketExtension;
 SMEXT_LINK(&g_socketExtension);
 
-TCPServer* server = 0;
+std::unique_ptr<TCPServer> server;
 map<string, IChangeableForward*> eventForwards;
 Config config;
 
@@ -113,14 +115,16 @@ void OnGameFrame(bool simulated)
 
 bool SocketExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
 {
+    const path configFolderPath = path(g_SMAPI->GetBaseDir()) / path("addons/sourcemod/configs");
+    const path configFilePath = configFolderPath / path("socketevents.ini");
+
     try
     {
-#if _WIN32
-        string configPath = string(g_SMAPI->GetBaseDir()) + "\\cfg\\sourcemod\\socketevents.ini";
-#else
-        string configPath = string(g_SMAPI->GetBaseDir()) + "/cfg/sourcemod/socketevents.ini";
-#endif
-        const bool parsedConfig = textparsers->ParseFile_INI(configPath.c_str(), &config, NULL, NULL);
+        const bool parsedConfig = textparsers->ParseFile_INI(configFilePath.string().c_str(), &config, NULL, NULL);
+        if (parsedConfig)
+        {
+            config.LoadPEMPublicKey(configFolderPath);
+        }
     }
     catch (std::exception e)
     {
@@ -131,7 +135,7 @@ bool SocketExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
     EventArgsHandleType = handlesys->CreateType("EventArgs", &eventArgsHandler, 0, NULL, NULL, myself->GetIdentity(), NULL);
     smutils->AddGameFrameHook(OnGameFrame);
 
-    server = new TCPServer(config.port);
+    server = std::make_unique<TCPServer>(&config);
     server->Start();
     Print(std::string("Started TCP server on ") + to_string(config.port));
     
@@ -149,10 +153,9 @@ void SocketExtension::SDK_OnUnload()
     
     smutils->RemoveGameFrameHook(OnGameFrame);
 
-    if (server != nullptr)
+    if (!server)
     {
         server->Stop();
-        delete(server);
     }
 }
 

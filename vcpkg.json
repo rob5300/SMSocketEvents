@@ -1,5 +1,11 @@
 {
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
     "dependencies": [
-        "boost-asio", "boost-json"
-    ]
+        "boost-asio",
+        {
+            "name": "openssl",
+            "platform": "windows"
+        }
+    ],
+    "supports": "x86"
 }

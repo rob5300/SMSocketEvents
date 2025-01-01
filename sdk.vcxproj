@@ -455,7 +455,7 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug - Orange Box|Win32'">sample.ext.2.ep2</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug - Bloody Good Time|Win32'">sample.ext.2.bgt</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug - EYE|Win32'">sample.ext.2.eye</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">SocketExtension.ext.2.tf2</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">SocketEvents.ext.2.tf2</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release - Dark Messiah|Win32'">sample.ext.2.darkm</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release - Episode 1|Win32'">sample.ext.2.ep1</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release - Left 4 Dead 2|Win32'">sample.ext.2.l4d2</TargetName>
@@ -476,6 +476,10 @@
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <VcpkgTriplet>x86-windows</VcpkgTriplet>
+    <VcpkgHostTriplet>x86-windows</VcpkgHostTriplet>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
@@ -491,7 +495,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <LanguageStandard_C>Default</LanguageStandard_C>
+      <LanguageStandard_C>stdc11</LanguageStandard_C>
     </ClCompile>
     <Link>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;LIBCMT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -1189,6 +1193,7 @@
     <ClCompile Include="src\Config.cpp" />
     <ClCompile Include="src\EventArgs.cpp" />
     <ClCompile Include="src\EventArgs_Handle.cpp" />
+    <ClCompile Include="src\SignatureHelper.cpp" />
     <ClCompile Include="src\socket_extension.cpp" />
     <ClCompile Include="src\smsdk_ext.cpp" />
     <ClCompile Include="src\TCPServer.cpp" />
@@ -1203,6 +1208,7 @@
     <ClInclude Include="ext\concurrentqueue.h" />
     <ClInclude Include="ext\nlohmann\json.hpp" />
     <ClInclude Include="ext\nlohmann\json_fwd.hpp" />
+    <ClInclude Include="src\SignatureHelper.h" />
     <ClInclude Include="src\socket_extension.h" />
     <ClInclude Include="src\smsdk_config.h" />
     <ClInclude Include="src\TCPServer.hpp" />
@@ -1213,4 +1219,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties vcpkg_1json__JsonSchema="https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>

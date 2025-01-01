@@ -1,5 +1,18 @@
 #include "Config.h"
 #include <cstring>
+#include <fstream>
+#include <sstream>
+
+void Config::LoadPEMPublicKey(const std::filesystem::path& configFolderPath)
+{
+    std::ifstream keystream(configFolderPath / public_key);
+    if (keystream.is_open())
+    {
+        std::stringstream key;
+        key << keystream.rdbuf();
+        this->public_key = key.str();
+    }
+}
 
 unsigned int Config::GetTextParserVersion1()
 {
