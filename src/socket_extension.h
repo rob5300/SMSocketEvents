@@ -18,7 +18,9 @@ public:
 	/// Print a formatted message to console
 	/// </summary>
 	/// <param name="toPrint">Message to print</param>
-	void Print(std::string toPrint);
+	static void Print(std::string toPrint);
+
+	static void PrintError(std::string toPrint);
 
 	/**
 	 * @brief This is called after the initial loading sequence has been processed.

@@ -3,6 +3,7 @@
 #include <boost/asio.hpp>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include "socket_extension.h"
 
 using json = nlohmann::json;
 using boost::asio::ip::tcp;
@@ -16,7 +17,7 @@ TCPServer::TCPServer(Config* config) :
 {
 	this->port = port;
 	running = false;
-	sigHelper = std::make_unique<SignatureHelper>(config->public_key);
+	sigHelper = std::make_unique<SignatureHelper>(config->public_key_pem);
 }
 
 void TCPServer::Start()
@@ -54,12 +55,13 @@ void TCPServer::ParseMessageAndEnqueue(json& json)
 	{
 		EventMessage eventMessage;
 		eventMessage.name = json["event"];
+		//Allocate via new as a sp handle will take ownership later.
 		eventMessage.args = new EventArgs(json["args"]);
 		eventQueue.enqueue(eventMessage);
 	}
 	else
 	{
-		std::cout << "[Socket Events] Received message was missing 'event' and/or 'args' from payload " << std::endl;
+		SocketExtension::Print("Received message was missing 'event' and /or 'args' from payload and will be ignored.");
 	}
 }
 
@@ -75,13 +77,13 @@ void TCPServer::ServerRun()
 		}
 		catch (const std::exception& e)
 		{
-			std::cout << "Server Exception: " << e.what() << std::endl;
+			SocketExtension::PrintError("Server Exception: " + std::string(e.what()));
 		}
 	}
 
 	if (!socket.is_open())
 	{
-		std::cout << "Socket on port '" << std::to_string(port) << "' was closed." << std::endl;
+		SocketExtension::Print("Socket on port '" + std::to_string(port) + "' was closed.");
 	}
 }
 
@@ -96,7 +98,7 @@ void TCPServer::AcceptMessageHeaderAndBody()
 	}
 	catch (const std::exception& e)
 	{
-		std::cout << "[Socket Events] Header parse exception: " << e.what() << std::endl;
+		SocketExtension::PrintError("Header parse exception: " + std::string(e.what()));
 		acceptor.cancel();
 		return;
 	}
@@ -108,6 +110,7 @@ void TCPServer::AcceptMessageHeaderAndBody()
 		if (header.dataLength > MAX_BUFFER_SIZE)
 		{
 			//Do not accept buffer with size larger than the max
+			SocketExtension::PrintError("Message was rejected due to data size exceeding maximum.");
 			acceptor.cancel();
 			return;
 		}
@@ -128,7 +131,7 @@ void TCPServer::AcceptMessageHeaderAndBody()
 				const bool sigMatch = sigHelper->IsValid(read_string.get(), bufferSize, reinterpret_cast<unsigned char*>(header.signature), sizeof(header.signature));
 				if (!sigMatch)
 				{
-					std::cout << "[Socket Events] Message signature validation failed" << std::endl;
+					SocketExtension::PrintError("Message signature validation failed");
 					return;
 				}
 			}
@@ -138,7 +141,7 @@ void TCPServer::AcceptMessageHeaderAndBody()
 		}
 		catch (const std::exception& e)
 		{
-			std::cout << "[Socket Events] Message parse exception:\n" << e.what() << std::endl;
+			SocketExtension::Print("Message parse exception : \n" + std::string(e.what()));
 			acceptor.cancel();
 		}
 	}

@@ -3,15 +3,22 @@
 #include <fstream>
 #include <sstream>
 
-void Config::LoadPEMPublicKey(const std::filesystem::path& configFolderPath)
+bool Config::LoadPEMPublicKey(const std::filesystem::path& configFolderPath)
 {
-    std::ifstream keystream(configFolderPath / public_key);
+    std::ifstream keystream(configFolderPath / public_key_file);
     if (keystream.is_open())
     {
         std::stringstream key;
         key << keystream.rdbuf();
-        this->public_key = key.str();
+        this->public_key_pem = key.str();
+        return true;
     }
+    else
+    {
+        secure = false;
+    }
+
+    return false;
 }
 
 unsigned int Config::GetTextParserVersion1()
@@ -30,9 +37,9 @@ bool Config::ReadINI_KeyValue(const char* key, const char* value, bool invalid_t
     {
         port = std::stoi(value);
     }
-    else if (strcmp(key, "public_key") == 0)
+    else if (strcmp(key, "public_key_file") == 0)
     {
-        public_key = std::string(value);
+        public_key_file = std::string(value);
     }
     else if (strcmp(key, "eventsPerFrame") == 0)
     {

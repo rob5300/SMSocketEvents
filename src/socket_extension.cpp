@@ -12,7 +12,6 @@
 #include <iostream>
 #include <sstream>
 #include <map>
-#include <filesystem>
 #include "socket_extension.h"
 #include "TCPServer.hpp"
 #include "Config.h"
@@ -29,6 +28,7 @@ SMEXT_LINK(&g_socketExtension);
 std::unique_ptr<TCPServer> server;
 map<string, IChangeableForward*> eventForwards;
 Config config;
+const std::string ConfigName = "socketevents.ini";
 
 IChangeableForward* GetOrAddForward(char* name)
 {
@@ -65,6 +65,13 @@ void SocketExtension::Print(string toPrint)
     std::cout << oss.str() << std::endl;
 }
 
+void SocketExtension::PrintError(std::string toPrint)
+{
+    std::ostringstream oss;
+    oss << "[" << SMEXT_CONF_NAME << "] ERROR: " << toPrint;
+    std::cout << oss.str() << std::endl;
+}
+
 void OnGameFrame(bool simulated)
 {
     //Try to dequeue and send many events this frame
@@ -75,7 +82,7 @@ void OnGameFrame(bool simulated)
         {
             if (eventMessage.args == nullptr)
             {
-                std::cout << "Event '" << eventMessage.name << "' was missing valid arguments." << std::endl;
+                SocketExtension::PrintError("Event '" + eventMessage.name + "' was missing valid arguments.");
                 return;
             }
 
@@ -95,17 +102,20 @@ void OnGameFrame(bool simulated)
  
 	                if (result == Pl_Handled)
 	                {
-		                std::cout << "Event '" << eventMessage.name << "' sent" << std::endl;
+                        SocketExtension::Print("Event '" + eventMessage.name + "' sent");
 	                }
                 }
                 else
                 {
-                    std::cout << "Handle creation error " << error << std::endl;
+                    SocketExtension::PrintError("EventArgs Handle creation error: " + std::to_string(error));
+                    delete eventMessage.args;
                 }
             }
             else
             {
-                std::cout << "Received Event '" << eventMessage.name << "' but there are 0 subscribers" << std::endl;
+                SocketExtension::PrintError("Received Event '" + eventMessage.name + "' but there are 0 subscribers");
+                //Delete args as it would otherwise leak
+                delete eventMessage.args;
             }
         }
         //Stop now as no events can be de queued.
@@ -116,15 +126,24 @@ void OnGameFrame(bool simulated)
 bool SocketExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
 {
     const path configFolderPath = path(g_SMAPI->GetBaseDir()) / path("addons/sourcemod/configs");
-    const path configFilePath = configFolderPath / path("socketevents.ini");
+    const path configFilePath = configFolderPath / path(ConfigName);
 
     try
     {
-        const bool parsedConfig = textparsers->ParseFile_INI(configFilePath.string().c_str(), &config, NULL, NULL);
-        if (parsedConfig)
+        if (filesystem::exists(configFilePath))
         {
-            config.LoadPEMPublicKey(configFolderPath);
+            const bool parsedConfig = textparsers->ParseFile_INI(configFilePath.string().c_str(), &config, NULL, NULL);
+            if (parsedConfig && config.secure)
+            {
+                const bool keyLoaded = config.LoadPEMPublicKey(configFolderPath);
+                if (!keyLoaded) Print("Failed to load public key file '" + config.public_key_file +"'. A public key in PEM format is required for secure mode!");
+            }
+            else
+            {
+                Print("Config parse failed! Defaults will be used.");
+            }
         }
+        else Print("Config '" + ConfigName + "' not present, defaults will be used.");
     }
     catch (std::exception e)
     {
@@ -138,8 +157,8 @@ bool SocketExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
     server = std::make_unique<TCPServer>(&config);
     server->Start();
     Print(std::string("Started TCP server on ") + to_string(config.port));
-    const bool isSecure = config.secure && !config.public_key.empty();
-    Print(isSecure ? std::string("Secure mode is enabled") : std::string("Secure mode is NOT enabled. Check config and public key."));
+    const bool isSecure = config.secure && !config.public_key_pem.empty();
+    Print(isSecure ? std::string("Message signature verification is enabled.") : std::string("Message signature verification is disabled (Enable in config)."));
     
     return true;
 }

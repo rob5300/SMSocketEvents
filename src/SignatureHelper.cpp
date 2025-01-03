@@ -1,10 +1,13 @@
 #include "SignatureHelper.h"
 #include <openssl/conf.h>
 #include <openssl/pem.h>
+#include <iostream>
+#include "socket_extension.h"
 
 SignatureHelper::SignatureHelper(const std::string& publicPEMKey)
 {
-    OPENSSL_config(NULL);
+    if(publicPEMKey.empty()) return;
+
     OPENSSL_init_crypto(0, nullptr);
     
     //Load pem key and read into a EVP_PKEY
@@ -15,6 +18,12 @@ SignatureHelper::SignatureHelper(const std::string& publicPEMKey)
 
 bool SignatureHelper::IsValid(const char* message, size_t length, const unsigned char* signature, size_t signatureLength)
 {
+    if (publicKey == nullptr)
+    {
+        SocketExtension::PrintError("A signature check was attempted but no public key is loaded.");
+        return false;
+    }
+
     const auto ctx = EVP_MD_CTX_new();
     bool success = EVP_DigestVerifyInit(ctx, NULL, EVP_sha256(), NULL, publicKey);
     if(!success) return false;

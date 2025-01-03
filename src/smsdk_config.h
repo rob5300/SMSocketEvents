@@ -32,7 +32,7 @@
  */
 
 /* Basic information exposed publicly */
-#define SMEXT_CONF_NAME			"SocketEvents Extension"
+#define SMEXT_CONF_NAME			"SocketEvents"
 #define SMEXT_CONF_DESCRIPTION	""
 #define SMEXT_CONF_VERSION		"0.0.1"
 #define SMEXT_CONF_AUTHOR		"rob5300"
