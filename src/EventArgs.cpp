@@ -243,7 +243,7 @@ EventArgs::~EventArgs()
 {
 }
 
-constexpr const char SEPERATOR = '.';
+constexpr const char SEPERATOR = '/';
 std::vector<std::string> EventArgs::GetKeyAsPath(const std::string& key)
 {
     std::vector<std::string> path;
