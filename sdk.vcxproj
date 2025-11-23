@@ -1193,12 +1193,15 @@
     <ClCompile Include="src\Config.cpp" />
     <ClCompile Include="src\EventArgs.cpp" />
     <ClCompile Include="src\EventArgs_Handle.cpp" />
+    <ClCompile Include="src\server\Server.cpp" />
+    <ClCompile Include="src\server\WebsocketServer.cpp" />
     <ClCompile Include="src\SignatureHelper.cpp" />
     <ClCompile Include="src\socket_extension.cpp" />
     <ClCompile Include="src\smsdk_ext.cpp" />
-    <ClCompile Include="src\TCPServer.cpp" />
+    <ClCompile Include="src\server\TCPServer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\server\Server.h" />
     <ClInclude Include="src\ArgumentException.h" />
     <ClInclude Include="src\Argument.h" />
     <ClInclude Include="src\Config.h" />
@@ -1208,10 +1211,11 @@
     <ClInclude Include="ext\concurrentqueue.h" />
     <ClInclude Include="ext\nlohmann\json.hpp" />
     <ClInclude Include="ext\nlohmann\json_fwd.hpp" />
+    <ClInclude Include="src\server\WebsocketServer.h" />
     <ClInclude Include="src\SignatureHelper.h" />
     <ClInclude Include="src\socket_extension.h" />
     <ClInclude Include="src\smsdk_config.h" />
-    <ClInclude Include="src\TCPServer.hpp" />
+    <ClInclude Include="src\server\TCPServer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vcpkg.json" />

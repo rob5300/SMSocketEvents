@@ -1,9 +1,9 @@
 #include "TCPServer.hpp"
-#include "EventMessage.h"
+#include "../EventMessage.h"
 #include <boost/asio.hpp>
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include "socket_extension.h"
+#include "../socket_extension.h"
 
 using json = nlohmann::json;
 using boost::asio::ip::tcp;
@@ -47,22 +47,6 @@ void TCPServer::Stop()
 	}
 
 	thread->join();
-}
-
-void TCPServer::ParseMessageAndEnqueue(json& json)
-{
-	if (json.contains("event") && json.contains("args"))
-	{
-		EventMessage eventMessage;
-		eventMessage.name = json["event"];
-		//Allocate via new as a sp handle will take ownership later.
-		eventMessage.args = new EventArgs(json["args"]);
-		eventQueue.enqueue(eventMessage);
-	}
-	else
-	{
-		SocketExtension::Print("Received message was missing 'event' and /or 'args' from payload and will be ignored.");
-	}
 }
 
 void TCPServer::ServerRun()

@@ -12,11 +12,14 @@
 #include <iostream>
 #include <sstream>
 #include <map>
+#include <fstream>
 #include "socket_extension.h"
-#include "TCPServer.hpp"
+#include "server/WebsocketServer.h"
+#include "server/TCPServer.hpp"
 #include "Config.h"
 #include "EventArgs.h"
 #include "EventArgs_Handle.h"
+#include "../ext/nlohmann/json.hpp"
 
 using namespace SourceMod;
 using namespace std;
@@ -25,10 +28,10 @@ using namespace std::filesystem;
 SocketExtension g_socketExtension;
 SMEXT_LINK(&g_socketExtension);
 
-std::unique_ptr<TCPServer> server;
+std::unique_ptr<Server> server;
 map<string, IChangeableForward*> eventForwards;
 Config config;
-const std::string ConfigName = "socketevents.ini";
+const std::string ConfigName = "socketevents.json";
 
 IChangeableForward* GetOrAddForward(char* name)
 {
@@ -132,15 +135,26 @@ bool SocketExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
     {
         if (filesystem::exists(configFilePath))
         {
-            const bool parsedConfig = textparsers->ParseFile_INI(configFilePath.string().c_str(), &config, NULL, NULL);
-            if (parsedConfig && config.secure)
+            try
+            {
+                const std::ifstream configStream(configFilePath);
+                std::stringstream configStringStream;
+                configStringStream << configStream.rdbuf();
+                config = nlohmann::json::parse(configStringStream).get<Config>();
+            }
+            catch (const exception& exception)
+            {
+                Print(exception.what());
+                Print("Failed to parse config, defaults will be used.");
+            }
+
+            if (config.secure && !config.websockets)
             {
                 const bool keyLoaded = config.LoadPEMPublicKey(configFolderPath);
-                if (!keyLoaded) Print("Failed to load public key file '" + config.public_key_file +"'. A public key in PEM format is required for secure mode!");
-            }
-            else
-            {
-                Print("Config parse failed! Defaults will be used.");
+                if (!keyLoaded)
+                {
+                    Print("Failed to load public key file '" + config.public_key_file +"'. A public key in PEM format is required for secure mode in tcp mode!");
+                }
             }
         }
         else Print("Config '" + ConfigName + "' not present, defaults will be used.");
@@ -154,9 +168,20 @@ bool SocketExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
     EventArgsHandleType = handlesys->CreateType("EventArgs", &eventArgsHandler, 0, NULL, NULL, myself->GetIdentity(), NULL);
     smutils->AddGameFrameHook(OnGameFrame);
 
-    server = std::make_unique<TCPServer>(&config);
+    //Make web socket server or tcp server
+    if(config.websockets)
+    {
+        Print("Will use web socket server");
+        server = std::make_unique<WebsocketServer>(&config);
+    }
+    else
+    {
+        Print("Will use TCP server");
+        server = std::make_unique<TCPServer>(&config);
+    }
+
     server->Start();
-    Print(std::string("Started TCP server on ") + to_string(config.port));
+    Print(std::string("Started event server on ") + to_string(config.port));
     const bool isSecure = config.secure && !config.public_key_pem.empty();
     Print(isSecure ? std::string("Message signature verification is enabled.") : std::string("Message signature verification is disabled (Enable in config)."));
     
