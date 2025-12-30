@@ -2,8 +2,7 @@
 #include "Server.h"
 #include "..\Config.h"
 #undef clamp
-#include <boost/beast/core.hpp>
-#include <boost/beast/websocket.hpp>
+
 #include <boost/asio/ip/tcp.hpp>
 
 class WebsocketServer : public Server

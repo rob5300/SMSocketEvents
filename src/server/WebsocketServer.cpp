@@ -1,11 +1,13 @@
 #include "WebsocketServer.h"
 #include "../../ext/nlohmann/json.hpp"
 #include <boost/asio/ip/tcp.hpp>
-#include <cstdlib>
-#include <functional>
 #include <iostream>
 #include <string>
 #include <thread>
+#include <boost/beast.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/websocket.hpp>
+#include "ServerResponse.h"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -77,16 +79,30 @@ void WebsocketServer::ServerRun()
             if (ws.got_text())
             {
                 //Parse json and process message
-                json json = json::parse(static_cast<char*>(buffer.data().data()));
-                const MessageParseStatus status = ParseMessageAndEnqueue(std::move(json));
+                json _json = json::parse(static_cast<char*>(buffer.data().data()));
+                const MessageParseStatus status = ParseMessageAndEnqueue(std::move(_json));
                 if (status == MessageParseStatus::AUTH_FAILED)
                 {
+                    //Write back auth failed response
+                    auto response = ServerResponse(false, "Auth failed");
+                    ws.write(response.AsBuffer());
+
                     //Close connection due to auth failure
                     acceptor.cancel();
                     running = false;
 
                     return;
                 }
+                else
+                {
+                    auto response = ServerResponse(true);
+                    ws.write(response.AsBuffer());
+                }
+            }
+            else
+            {
+                auto response = ServerResponse(false, "Malformed message");
+                ws.write(response.AsBuffer());
             }
         }
     }

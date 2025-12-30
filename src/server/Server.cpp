@@ -19,6 +19,8 @@ const MessageParseStatus Server::ParseMessageAndEnqueue(json& json)
 
 	if (!authenticated)
 	{
+		SocketExtension::PrintError("Received event message but auth token was missing or invalid");
+
 		return MessageParseStatus::AUTH_FAILED;
 	}
 

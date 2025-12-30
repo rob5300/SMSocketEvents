@@ -182,8 +182,13 @@ bool SocketExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
 
     server->Start();
     Print(std::string("Started event server on ") + to_string(config.port));
-    const bool isSecure = config.secure && !config.public_key_pem.empty();
-    Print(isSecure ? std::string("Message signature verification is enabled.") : std::string("Message signature verification is disabled (Enable in config)."));
+    
+    if (!config.websockets)
+    {
+        //Print message indicating message signature verification state
+        const bool isSecure = config.secure && !config.public_key_pem.empty();
+        Print(isSecure ? std::string("Message signature verification is enabled.") : std::string("Message signature verification is disabled (Enable in config)."));
+    }
     
     return true;
 }
