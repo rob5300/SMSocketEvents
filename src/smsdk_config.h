@@ -36,7 +36,7 @@
 #define SMEXT_CONF_DESCRIPTION	"Custom event messages via json and websockets/tcp"
 #define SMEXT_CONF_VERSION		"0.1.0"
 #define SMEXT_CONF_AUTHOR		"rob5300"
-#define SMEXT_CONF_URL			""
+#define SMEXT_CONF_URL			"https://github.com/rob5300/SMSocketEvents"
 #define SMEXT_CONF_LOGTAG		"SocketEvents"
 #define SMEXT_CONF_LICENSE		"GPL"
 #define SMEXT_CONF_DATESTRING	__DATE__
