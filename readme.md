@@ -2,28 +2,26 @@
 
 A sourcemod native extension.
 
-Send custom events with custom data to a TCP socket and listen to them from source pawn. 
+Invoke custom events on your soucemod server with custom data via websockets (or raw TCP) and listen to them from source pawn. 
+Message bodies are JSON.
+
+Uses boost beast, boost asio and openssl.
 
 # How to use
-## Send event payload
-Currently, an event payload must be sent in 2 parts, the event header and then the event payload. Hopefully in future this can be simplified for the header + body to be sent together.
-### Header
-The header is 400 bytes in length:
-- ``EVENTMSG`` string (char[8])
-- Payload byte length (int64)
-- Sha256 payload signature (char[384])
-
-If payload signature verification (secure mode) is not enabled then the signature is not checked (so can be all 0's).
-### Body
-The body should be a utf8 json string with the layout below. Its byte length (in utf8) must match what was specified in the header sent previously.
+## Websockets
+Connect your websocket client to the configured port (443 or 80).
+## Message format
+Events are sent as JSON. The event name is required as ``event`` alongwith any arguments as an object ``args``. Example:
 ```
 {
     "event": "myEventName",
-    "args": {} //Your event arguments
+    "args": {
+        
+    },
+    "token": "mytoken123"
 }
 ```
-
-Currently no response is given by the server when data is sent. Check the server console for log messages reporting if the message was recieved correctly or not.
+If enabled you must also provide a valid token as ``token`` (these are user configured in the extension config).
 
 # Recieve event
 Use ``AddEventListener()`` to subscribe to an event with a specific name. The EventArgs object given contains the data from the event payload similarly to KeyValues.
@@ -60,14 +58,20 @@ void EventCallback1(EventArgs args)
 }
 ```
 
+## TCP
+Check [tcp_readme.md](./tcp_readme.md) for info on how to use raw TCP mode.
+
 ## Config
-Configuration is read from ``sourcemod/configs/socketevents.ini``. Below is a sample of the config:
+Configuration is read from ``sourcemod/configs/socketevents.json`` and is JSON. Below is a sample of the config:
 ```
-[server]
-port = 25570        //Port to bind to and listen to (TCP)
-public_key_file = test_key.pem      //public key in PEM format, if secure mode is enabled
-secure = true       //If the payload signature should be verified using the configured public key
-eventsPerFrame = 4      //How many events max per game tick to send to listeners
+{
+    "port": 443,  //Port to bind and listen to
+    "websockets": true,  //If websockets should be used
+    "eventsPerFrame": 4,  //How many events max per game tick to send to listeners
+    "tokens": [
+        "mytoken123"
+    ]
+}
 ```
 
 ## Building

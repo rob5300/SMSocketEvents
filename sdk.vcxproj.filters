@@ -21,7 +21,7 @@
     <ClCompile Include="src\smsdk_ext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\TCPServer.cpp">
+    <ClCompile Include="src\server\TCPServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Config.cpp">
@@ -39,6 +39,15 @@
     <ClCompile Include="src\SignatureHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\server\WebsocketServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\server\Server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\server\ServerResponse.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\socket_extension.h">
@@ -53,7 +62,7 @@
     <ClInclude Include="ext\nlohmann\json_fwd.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\TCPServer.hpp">
+    <ClInclude Include="src\server\TCPServer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ext\concurrentqueue.h">
@@ -78,6 +87,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\SignatureHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\server\Server.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\server\WebsocketServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\server\ServerResponse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

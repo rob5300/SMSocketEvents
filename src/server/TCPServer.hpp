@@ -4,10 +4,10 @@
 #include <string.h>
 #include <nlohmann/json.hpp>
 #include <boost/asio.hpp>
-#include "concurrentqueue.h"
-#include "EventMessage.h"
-#include "SignatureHelper.h"
-#include "Config.h"
+#include "../SignatureHelper.h"
+#include "../Config.h"
+#include "Server.h"
+#include <platform.h>
 
 constexpr const char* EVENT_MAGIC_STRING = "EVENTMSG";
 
@@ -23,13 +23,13 @@ struct EventMessageHeader
 	char signature[384];
 };
 
-class TCPServer
+class TCPServer : public Server
 {
 	public:
 		TCPServer(Config* config);
 		void Start();
 		void Stop();
-		moodycamel::ConcurrentQueue<EventMessage> eventQueue;
+		bool IsRunning() { return running; }
 
 	private:
 		bool running;
@@ -43,12 +43,5 @@ class TCPServer
 		std::unique_ptr<SignatureHelper> sigHelper;
 
 		void ServerRun();
-		void StartAccept();
-		void HandleAccept(const boost::system::error_code& error);
 		void AcceptMessageHeaderAndBody();
-
-		/// <summary>
-		/// Parse message json and enqueue a new event message
-		/// </summary>
-		void ParseMessageAndEnqueue(nlohmann::json& json);
 };
