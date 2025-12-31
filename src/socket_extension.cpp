@@ -181,7 +181,7 @@ bool SocketExtension::SDK_OnLoad(char* error, size_t maxlength, bool late)
     }
 
     server->Start();
-    Print(std::string("Started event server on ") + to_string(config.port));
+    Print(std::string("Started event server on port: ") + to_string(config.port));
     
     if (!config.websockets)
     {

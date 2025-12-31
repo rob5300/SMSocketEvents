@@ -16,8 +16,6 @@ public:
 
 private:
 	bool running;
-	Config* config;
-	int32_t port;
 	std::unique_ptr<std::thread> thread;
 	boost::asio::io_context io_context;
 	boost::asio::ip::tcp::acceptor acceptor;
