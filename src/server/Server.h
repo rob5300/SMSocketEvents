@@ -1,8 +1,8 @@
 #pragma once
 #include "concurrentqueue.h"
-#include "../EventMessage.h"
-#include "..\Config.h"
-#include <nlohmann\json.hpp>
+#include "EventMessage.h"
+#include "Config.h"
+#include <nlohmann/json.hpp>
 
 enum MessageParseStatus: char {OK, PARSE_ERROR, AUTH_FAILED};
 

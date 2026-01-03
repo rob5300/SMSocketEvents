@@ -129,7 +129,7 @@ ifeq "$(USEMETA)" "true"
 		-DSE_PORTAL2=11 -DSE_CSGO=12 -DSE_TF2=11
 endif
 
-LINK += -Lboost -Lopenssl -lcrypto -m32 -L/usr/lib/i386-linux-gnu/ -lm -ldl -lstdc++fs -lstdc++ -static-libgcc
+LINK += -Lboost -Lopenssl -Lcrypto -m32 -L/usr/lib/i386-linux-gnu/ -lm -ldl -lstdc++fs -lstdc++ -static-libgcc
 
 CFLAGS += -DPOSIX -Dstricmp=strcasecmp -D_stricmp=strcasecmp -D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp \
 	-D_snprintf=snprintf -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp -DCOMPILER_GCC -Wall \

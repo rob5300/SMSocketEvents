@@ -1,6 +1,6 @@
 #pragma once
 #include "Server.h"
-#include "..\Config.h"
+#include "Config.h"
 #undef clamp
 
 #include <boost/asio/ip/tcp.hpp>

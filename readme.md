@@ -2,35 +2,49 @@
 
 A sourcemod native extension.
 
-Invoke custom events on your soucemod server with custom data via websockets (or raw TCP) and listen to them from source pawn. 
-Message bodies are JSON.
+Invoke custom events on your soucemod server with custom data via websockets as JSON (or raw TCP) and listen to them from source pawn.
 
 Uses boost beast, boost asio and openssl.
 
 # How to use
 ## Websockets
-Connect your websocket client to the configured port (443 or 80).
+Connect your websocket client to the configured port (443 or 80). Invoke events by sending JSON to the server. Currently only one client is supported at once.
 ## Message format
-Events are sent as JSON. The event name is required as ``event`` alongwith any arguments as an object ``args``. Example:
+Events are sent as JSON. The event name is required as ``event`` alongwith any arguments as an object ``args``.
+
+int, bool, float, string, objects and arrays are supported as arguments. Example:
 ```
 {
     "event": "myEventName",
     "args": {
-        
+        "someInt": 5,
+        "name": "rob5300",
+        "subObject": {
+            "numbers": [1,2,3]
+        }
     },
     "token": "mytoken123"
 }
 ```
 If enabled you must also provide a valid token as ``token`` (these are user configured in the extension config).
 
-# Recieve event
-Use ``AddEventListener()`` to subscribe to an event with a specific name. The EventArgs object given contains the data from the event payload similarly to KeyValues.
+## Response
+The websocket server will reply with a message to indicate success or failiure of parsing and processing the last event message in the format:
+```
+{
+    "success": false,
+    "message": "Some error message"
+}
+```
+
+# Recieving event in SourcePawn
+Use ``AddEventListener()`` to subscribe to an event with a specific name. The EventArgs object argument contains the data from the event payload similarly to KeyValues.
 
 The event args object has many functions to get your data as a string, int, bool and float. Arrays are also supported. If you have objects within objects then these can be retrieved as EventArg objects. Similarly to KeyValues, you can specify a path as a key to get values quickly from nested objects.
 
 EventArgs objects must be disposed of when no longer used, these are Handles.
 
-Example:
+Example of listening to an event in sourcepawn and getting data:
 ```
 public void OnPluginStart()
 {
@@ -85,4 +99,4 @@ Use the provided make file via ``make``. Requires GCC 8+ (Ambuild cannot be used
 ### Windows:
 Install vcpkg and install from manifest: ``vcpkg install --triplet x86-windows``. This will install boost asio and openssl
 
-Open and build using the solution file (``socket_ext.sln``) in VS 2022+
+Open and build using the solution file (``socket_ext.sln``) in VS 2022+ with the latest windows 10/11 sdk.

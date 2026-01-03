@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <filesystem>
-#include <public/ITextParsers.h>
 #include "../ext/nlohmann/json.hpp"
 
 class Config
